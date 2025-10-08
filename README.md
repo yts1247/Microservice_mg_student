@@ -1,7 +1,7 @@
-# Hệ thống Microservice Quản lý Học sinh
+# Student Management System - Microservices with TypeScript
 
 ## Tổng quan
-Hệ thống microservice quản lý học sinh, lịch học và khóa học được xây dựng với kiến trúc phân tán, mỗi service độc lập và có thể scale riêng biệt.
+Hệ thống microservice quản lý học sinh, lịch học và khóa học được xây dựng với **TypeScript**, kiến trúc phân tán, mỗi service độc lập và có thể scale riêng biệt. Hệ thống đã được chuyển đổi hoàn toàn từ JavaScript sang TypeScript để tăng cường type safety và trải nghiệm phát triển.
 
 ## Kiến trúc hệ thống
 
@@ -32,12 +32,15 @@ Hệ thống microservice quản lý học sinh, lịch học và khóa học đ
    - Authentication & Authorization
 
 ### Công nghệ sử dụng
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB
+- **Backend**: Node.js, Express.js, **TypeScript**
+- **Database**: MongoDB với Mongoose ODM
 - **Authentication**: JWT (JSON Web Tokens)
-- **Message Queue**: Redis (cho communication giữa services)
-- **Containerization**: Docker & Docker Compose
+- **Type Safety**: TypeScript với strict mode
+- **Development**: ts-node-dev, nodemon
+- **Build Tool**: TypeScript compiler (tsc)
+- **Testing**: Jest, Supertest
 - **API Documentation**: Swagger/OpenAPI
+- **Containerization**: Docker & Docker Compose
 
 ### Luồng dữ liệu chính
 1. Client gửi request đến API Gateway
@@ -54,23 +57,59 @@ Hệ thống microservice quản lý học sinh, lịch học và khóa học đ
 - npm hoặc yarn
 
 ### Khởi chạy hệ thống
+
+#### Cài đặt dependencies
 ```bash
 # Clone repository
 git clone <repository-url>
 cd microservice_be
 
-# Cài đặt dependencies cho tất cả services
-npm run install-all
+# Cài đặt dependencies cho từng service
+cd user-service && npm install && cd ..
+cd course-service && npm install && cd ..
+cd schedule-service && npm install && cd ..
+cd enrollment-service && npm install && cd ..
+cd api-gateway && npm install && cd ..
+```
 
-# Build và chạy tất cả services với Docker
-docker-compose up --build
+#### Cấu hình môi trường
+```bash
+# Copy và cấu hình file .env cho từng service
+cp user-service/.env.sample user-service/.env
+cp course-service/.env.sample course-service/.env
+cp schedule-service/.env.sample schedule-service/.env
+cp enrollment-service/.env.sample enrollment-service/.env
+cp api-gateway/.env.sample api-gateway/.env
+```
 
-# Hoặc chạy từng service riêng biệt
-cd user-service && npm start
-cd course-service && npm start
-cd schedule-service && npm start
-cd enrollment-service && npm start
-cd api-gateway && npm start
+#### Development mode (TypeScript)
+```bash
+# Chạy từng service riêng biệt trong development mode
+cd user-service && npm run dev
+cd course-service && npm run dev
+cd schedule-service && npm run dev
+cd enrollment-service && npm run dev
+cd api-gateway && npm run dev
+```
+
+#### Production build
+```bash
+# Build TypeScript to JavaScript
+cd user-service && npm run build && npm start
+cd course-service && npm run build && npm start
+cd schedule-service && npm run build && npm start
+cd enrollment-service && npm run build && npm start
+cd api-gateway && npm run build && npm start
+```
+
+#### Type checking
+```bash
+# Kiểm tra TypeScript types
+cd user-service && npm run type-check
+cd course-service && npm run type-check
+cd schedule-service && npm run type-check
+cd enrollment-service && npm run type-check
+cd api-gateway && npm run type-check
 ```
 
 ### Endpoints chính
@@ -88,11 +127,41 @@ Sau khi khởi chạy, Swagger UI có sẵn tại:
 ## Cấu trúc dự án
 ```
 microservice_be/
-├── user-service/           # Service quản lý người dùng
-├── course-service/         # Service quản lý khóa học
-├── schedule-service/       # Service quản lý lịch học
-├── enrollment-service/     # Service quản lý đăng ký
-├── api-gateway/           # API Gateway
-├── docker-compose.yml     # Container orchestration
-└── README.md             # Documentation
+├── user-service/              # Service quản lý người dùng
+│   ├── src/                   # TypeScript source code
+│   │   ├── types/            # Type definitions
+│   │   ├── controllers/      # Controllers
+│   │   ├── models/           # MongoDB models
+│   │   ├── middleware/       # Express middleware
+│   │   ├── routes/           # API routes
+│   │   └── services/         # Business logic
+│   ├── dist/                 # Compiled JavaScript (build output)
+│   ├── package.json          # Dependencies và scripts
+│   ├── tsconfig.json         # TypeScript configuration
+│   └── .env.sample           # Environment variables template
+├── course-service/           # Service quản lý khóa học (cùng cấu trúc)
+├── schedule-service/         # Service quản lý lịch học (cùng cấu trúc)
+├── enrollment-service/       # Service quản lý đăng ký (cùng cấu trúc)
+├── api-gateway/             # API Gateway (cùng cấu trúc)
+├── .gitignore               # Git ignore file (bảo mật)
+├── docker-compose.yml       # Container orchestration
+└── README.md               # Documentation
 ```
+
+## Tính năng TypeScript
+- ✅ **Full Type Safety**: Tất cả code được chuyển đổi sang TypeScript
+- ✅ **Strict Mode**: TypeScript strict mode được bật
+- ✅ **Interface Definitions**: Đầy đủ interfaces cho models và DTOs
+- ✅ **Type Guards**: Type checking và validation
+- ✅ **Generic Types**: Sử dụng generics cho API responses
+- ✅ **Environment Safety**: Type-safe environment variables
+- ✅ **Build Pipeline**: TypeScript compilation pipeline
+- ✅ **Development Experience**: Hot reload với ts-node-dev
+
+## Scripts NPM
+Mỗi service có các scripts sau:
+- `npm run dev` - Development mode với TypeScript hot reload
+- `npm run build` - Build TypeScript to JavaScript
+- `npm start` - Chạy production build
+- `npm run type-check` - Kiểm tra TypeScript types
+- `npm test` - Chạy unit tests

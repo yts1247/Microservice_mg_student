@@ -9,6 +9,12 @@
     "install-schedule": "cd schedule-service && npm install",
     "install-enrollment": "cd enrollment-service && npm install",
     "install-gateway": "cd api-gateway && npm install",
+    "build-all": "npm run build-user && npm run build-course && npm run build-schedule && npm run build-enrollment && npm run build-gateway",
+    "build-user": "cd user-service && npm run build",
+    "build-course": "cd course-service && npm run build",
+    "build-schedule": "cd schedule-service && npm run build",
+    "build-enrollment": "cd enrollment-service && npm run build",
+    "build-gateway": "cd api-gateway && npm run build",
     "dev-user": "cd user-service && npm run dev",
     "dev-course": "cd course-service && npm run dev",
     "dev-schedule": "cd schedule-service && npm run dev", 
@@ -21,6 +27,13 @@
     "start-schedule": "cd schedule-service && npm start",
     "start-enrollment": "cd enrollment-service && npm start", 
     "start-gateway": "cd api-gateway && npm start",
+    "type-check": "tsc --noEmit",
+    "type-check-all": "npm run type-check-user && npm run type-check-course && npm run type-check-schedule && npm run type-check-enrollment && npm run type-check-gateway",
+    "type-check-user": "cd user-service && npm run type-check",
+    "type-check-course": "cd course-service && npm run type-check",
+    "type-check-schedule": "cd schedule-service && npm run type-check",
+    "type-check-enrollment": "cd enrollment-service && npm run type-check",
+    "type-check-gateway": "cd api-gateway && npm run type-check",
     "docker-build": "docker-compose build",
     "docker-up": "docker-compose up",
     "docker-down": "docker-compose down",
@@ -28,7 +41,9 @@
     "docker-restart": "docker-compose down && docker-compose up --build"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5"
   },
   "keywords": ["microservices", "student", "management", "nodejs", "express", "mongodb"],
   "author": "Student Management Team",

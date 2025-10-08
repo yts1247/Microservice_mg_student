@@ -1,0 +1,36 @@
+{
+  "name": "student-management-microservices",
+  "version": "1.0.0",
+  "description": "Microservice system for student management",
+  "scripts": {
+    "install-all": "npm run install-user && npm run install-course && npm run install-schedule && npm run install-enrollment && npm run install-gateway",
+    "install-user": "cd user-service && npm install",
+    "install-course": "cd course-service && npm install", 
+    "install-schedule": "cd schedule-service && npm install",
+    "install-enrollment": "cd enrollment-service && npm install",
+    "install-gateway": "cd api-gateway && npm install",
+    "dev-user": "cd user-service && npm run dev",
+    "dev-course": "cd course-service && npm run dev",
+    "dev-schedule": "cd schedule-service && npm run dev", 
+    "dev-enrollment": "cd enrollment-service && npm run dev",
+    "dev-gateway": "cd api-gateway && npm run dev",
+    "dev-all": "concurrently \"npm run dev-user\" \"npm run dev-course\" \"npm run dev-schedule\" \"npm run dev-enrollment\" \"npm run dev-gateway\"",
+    "start-all": "concurrently \"npm run start-user\" \"npm run start-course\" \"npm run start-schedule\" \"npm run start-enrollment\" \"npm run start-gateway\"",
+    "start-user": "cd user-service && npm start",
+    "start-course": "cd course-service && npm start",
+    "start-schedule": "cd schedule-service && npm start",
+    "start-enrollment": "cd enrollment-service && npm start", 
+    "start-gateway": "cd api-gateway && npm start",
+    "docker-build": "docker-compose build",
+    "docker-up": "docker-compose up",
+    "docker-down": "docker-compose down",
+    "docker-logs": "docker-compose logs -f",
+    "docker-restart": "docker-compose down && docker-compose up --build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["microservices", "student", "management", "nodejs", "express", "mongodb"],
+  "author": "Student Management Team",
+  "license": "MIT"
+}

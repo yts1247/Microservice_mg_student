@@ -1,0 +1,185 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:6.0
+    container_name: student_management_db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - student_management_network
+
+  # Redis for caching and messaging
+  redis:
+    image: redis:7-alpine
+    container_name: student_management_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - student_management_network
+
+  # User Service
+  user-service:
+    build: ./user-service
+    container_name: user_service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/user_service_db?authSource=admin
+      - JWT_SECRET=mySecretKey123456789012345678901234567890
+      - JWT_EXPIRES_IN=24h
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - student_management_network
+    volumes:
+      - ./user-service/logs:/usr/src/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Course Service
+  course-service:
+    build: ./course-service
+    container_name: course_service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/course_service_db?authSource=admin
+      - USER_SERVICE_URL=http://user-service:3001
+      - LOG_LEVEL=info
+    depends_on:
+      - mongodb
+      - user-service
+    networks:
+      - student_management_network
+    volumes:
+      - ./course-service/logs:/usr/src/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3002/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Schedule Service
+  schedule-service:
+    build: ./schedule-service
+    container_name: schedule_service
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/schedule_service_db?authSource=admin
+      - USER_SERVICE_URL=http://user-service:3001
+      - COURSE_SERVICE_URL=http://course-service:3002
+      - LOG_LEVEL=info
+    depends_on:
+      - mongodb
+      - user-service
+      - course-service
+    networks:
+      - student_management_network
+    volumes:
+      - ./schedule-service/logs:/usr/src/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3003/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Enrollment Service
+  enrollment-service:
+    build: ./enrollment-service
+    container_name: enrollment_service
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - PORT=3004
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/enrollment_service_db?authSource=admin
+      - USER_SERVICE_URL=http://user-service:3001
+      - COURSE_SERVICE_URL=http://course-service:3002
+      - SCHEDULE_SERVICE_URL=http://schedule-service:3003
+      - LOG_LEVEL=info
+    depends_on:
+      - mongodb
+      - user-service
+      - course-service
+      - schedule-service
+    networks:
+      - student_management_network
+    volumes:
+      - ./enrollment-service/logs:/usr/src/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3004/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: api_gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - USER_SERVICE_URL=http://user-service:3001
+      - COURSE_SERVICE_URL=http://course-service:3002
+      - SCHEDULE_SERVICE_URL=http://schedule-service:3003
+      - ENROLLMENT_SERVICE_URL=http://enrollment-service:3004
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+    depends_on:
+      - user-service
+      - course-service
+      - schedule-service
+      - enrollment-service
+      - redis
+    networks:
+      - student_management_network
+    volumes:
+      - ./api-gateway/logs:/usr/src/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  student_management_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local

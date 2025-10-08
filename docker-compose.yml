@@ -174,6 +174,44 @@ services:
       timeout: 10s
       retries: 3
 
+  # Log Management System
+  log-management:
+    build: ./log-management
+    container_name: log_management_system
+    restart: unless-stopped
+    ports:
+      - "3007:3007"
+    environment:
+      - NODE_ENV=production
+      - PORT=3007
+      - LOG_LEVEL=info
+      - API_GATEWAY_LOG_PATH=/app/logs/api-gateway
+      - USER_SERVICE_LOG_PATH=/app/logs/user-service
+      - COURSE_SERVICE_LOG_PATH=/app/logs/course-service
+      - SCHEDULE_SERVICE_LOG_PATH=/app/logs/schedule-service
+      - ENROLLMENT_SERVICE_LOG_PATH=/app/logs/enrollment-service
+      - CORS_ORIGIN=*
+    depends_on:
+      - api-gateway
+      - user-service
+      - course-service
+      - schedule-service
+      - enrollment-service
+    networks:
+      - student_management_network
+    volumes:
+      - ./api-gateway/logs:/app/logs/api-gateway:ro
+      - ./user-service/logs:/app/logs/user-service:ro
+      - ./course-service/logs:/app/logs/course-service:ro
+      - ./schedule-service/logs:/app/logs/schedule-service:ro
+      - ./enrollment-service/logs:/app/logs/enrollment-service:ro
+      - log_management_db:/app/logs.db
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3007/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 networks:
   student_management_network:
     driver: bridge
@@ -182,4 +220,6 @@ volumes:
   mongodb_data:
     driver: local
   redis_data:
+    driver: local
+  log_management_db:
     driver: local

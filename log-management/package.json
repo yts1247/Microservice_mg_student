@@ -1,0 +1,51 @@
+{
+  "name": "log-management",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3007",
+    "build": "next build",
+    "start": "next start -p 3007",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "db:init": "node scripts/init-db.js",
+    "db:migrate": "node scripts/migrate.js",
+    "cronjob:setup": "node scripts/setup-cronjob.js"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.2.6",
+    "antd": "^5.12.0",
+    "archiver": "^6.0.1",
+    "autoprefixer": "^10.4.16",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^9.2.2",
+    "chokidar": "^3.5.3",
+    "cron": "^3.1.6",
+    "dayjs": "^1.11.10",
+    "fs-extra": "^11.2.0",
+    "glob": "^11.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "next": "^14.0.0",
+    "next-auth": "^4.24.5",
+    "postcss": "^8.4.32",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sqlite3": "^5.1.6",
+    "tailwindcss": "^3.3.6",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/archiver": "^6.0.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/lodash": "^4.14.202",
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.39",
+    "@types/react-dom": "^18.2.17",
+    "eslint": "^8.55.0",
+    "eslint-config-next": "^14.0.0",
+    "typescript": "^5.3.2"
+  }
+}

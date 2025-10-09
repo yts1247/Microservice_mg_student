@@ -19,7 +19,6 @@ import {
   Modal,
   Form,
   InputNumber,
-  DatePicker,
 } from "antd";
 import {
   PlusOutlined,
@@ -41,9 +40,8 @@ import {
 } from "@/hooks/useCourses";
 import { Course, CreateCourseRequest } from "@/services/courseService";
 import Link from "next/link";
-import dayjs from "dayjs";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -202,7 +200,7 @@ export default function CoursesPage() {
       sorter: true,
       render: (courseCode: string, record: Course) => (
         <Link
-          href={`/admin/courses/${record.id}`}
+          href={`/admin/courses/${record.id ?? record._id}`}
           className="text-blue-600 hover:text-blue-800 font-medium"
         >
           {courseCode}
@@ -263,7 +261,7 @@ export default function CoursesPage() {
       render: (_, record: Course) => (
         <Space size="small">
           <Tooltip title="Xem chi tiết">
-            <Link href={`/admin/courses/${record.id}`}>
+            <Link href={`/admin/courses/${record.id ?? record._id}`}>
               <Button type="text" size="small" icon={<EyeOutlined />} />
             </Link>
           </Tooltip>
@@ -278,7 +276,7 @@ export default function CoursesPage() {
           <Popconfirm
             title="Xóa khóa học"
             description="Bạn có chắc chắn muốn xóa khóa học này?"
-            onConfirm={() => handleDelete(record.id)}
+            onConfirm={() => handleDelete(record.id ?? record._id)}
             okText="Xóa"
             cancelText="Hủy"
           >

@@ -179,7 +179,7 @@ curl -X POST http://localhost:3001/api/users/register \
 curl -X POST http://localhost:3001/api/users/login \
   -H "Content-Type: application/json" \
   -d '{
-    "identifier": "student01@example.com",
+    "username": "student01@example.com",
     "password": "Password123"
   }'
 ```

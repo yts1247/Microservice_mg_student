@@ -16,11 +16,9 @@ import {
   ArrowLeftOutlined,
   CheckCircleOutlined,
   StopOutlined,
-  EditOutlined,
 } from "@ant-design/icons";
 import { useRouter, useParams } from "next/navigation";
 import { useUser, useActivateUser, useDeactivateUser } from "@/hooks/useUsers";
-import Link from "next/link";
 
 const { Title } = Typography;
 

@@ -9,7 +9,7 @@ interface User {
   profile?: {
     firstName?: string;
     lastName?: string;
-    dateOfBirth?: Date;
+    dateOfBirth?: string | Date; // Accept both string and Date
     phone?: string;
   };
   studentInfo?: {

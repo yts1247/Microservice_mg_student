@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Form,
   Input,
@@ -24,22 +24,28 @@ interface LoginForm {
   remember: boolean;
 }
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const loginMutation = useLogin();
+  const loginMutation = useLogin({
+    onSuccess: () => {
+      message.success("Đăng nhập thành công!");
+
+      // Try both router.push and window.location
+      router.push("/admin");
+
+      console.log("Fallback: Using window.location.href");
+      window.location.href = "/admin";
+    },
+  });
 
   const handleLogin = async (values: LoginForm) => {
     setError(null);
-
     try {
       await loginMutation.mutateAsync({
         username: values.username,
         password: values.password,
       });
-
-      message.success("Đăng nhập thành công!");
-      router.push("/admin");
     } catch (err: unknown) {
       const errorMessage =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -74,7 +80,7 @@ const LoginPage: React.FC = () => {
             size="large"
           >
             <Form.Item
-              name="identifier"
+              name="username"
               label="Email hoặc tên đăng nhập"
               rules={[
                 {

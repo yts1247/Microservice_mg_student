@@ -37,7 +37,28 @@ export default function RegisterPage() {
 
   const registerMutation = useRegister();
 
-  const handleRegister = async (values: any) => {
+  const handleRegister = async (values: {
+    username: string;
+    email: string;
+    password: string;
+    role: "student" | "teacher" | "admin";
+    firstName: string;
+    lastName: string;
+    dateOfBirth?: any;
+    phone?: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+    studentId?: string;
+    grade?: string;
+    major?: string;
+    teacherId?: string;
+    department?: string;
+    subjects?: string[];
+    address?: any;
+  }) => {
     try {
       const registerData = {
         username: values.username,

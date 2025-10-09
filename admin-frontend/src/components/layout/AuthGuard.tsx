@@ -10,7 +10,7 @@ interface AuthGuardProps {
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const { isAuthenticated, isLoading, requireAuth } = useAuth();
-
+  console.log(isAuthenticated, isLoading, requireAuth, "data login");
   useEffect(() => {
     requireAuth();
   }, [isAuthenticated, isLoading, requireAuth]);

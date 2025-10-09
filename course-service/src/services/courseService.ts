@@ -27,6 +27,7 @@ class CourseService {
     instructorId: string
   ): Promise<ICourseDocument> {
     try {
+      if (!courseData.instructor) courseData.instructor = {};
       courseData.instructor.userId = instructorId;
       const course = new Course(courseData);
       await course.save();

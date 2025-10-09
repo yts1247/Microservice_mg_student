@@ -71,18 +71,29 @@ class UserService {
     try {
       // Find user by email or username and include password for comparison
       const user = await User.findByEmailOrUsername(identifier);
+      logger.debug(
+        `[loginUser] identifier: ${identifier}, found user: ${!!user}`
+      );
 
       if (!user) {
+        logger.debug(
+          `[loginUser] User not found for identifier: ${identifier}`
+        );
         throw new Error("Invalid credentials");
       }
 
       if (!user.isActive) {
+        logger.debug(`[loginUser] User is not active: ${identifier}`);
         throw new Error("Account is deactivated");
       }
 
       // Check password
       const isPasswordMatch = await user.comparePassword(password);
+      logger.debug(`[loginUser] Password match: ${isPasswordMatch}`);
       if (!isPasswordMatch) {
+        logger.debug(
+          `[loginUser] Password does not match for user: ${identifier}`
+        );
         throw new Error("Invalid credentials");
       }
 

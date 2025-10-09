@@ -45,7 +45,7 @@ export default function HealthCheckPage() {
 
   const checkHealth = async (
     url: string,
-    serviceName: string
+    _serviceName: string
   ): Promise<HealthStatus> => {
     const startTime = Date.now();
     try {
@@ -93,9 +93,13 @@ export default function HealthCheckPage() {
   };
 
   useEffect(() => {
-    fetchHealthStatus();
+    const fetchAndRefresh = () => {
+      fetchHealthStatus();
+    };
+
+    fetchAndRefresh();
     // Auto refresh every 30 seconds
-    const interval = setInterval(fetchHealthStatus, 30000);
+    const interval = setInterval(fetchAndRefresh, 30000);
     return () => clearInterval(interval);
   }, []);
 

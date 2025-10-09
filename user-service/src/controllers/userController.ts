@@ -37,6 +37,7 @@ class UserController {
   ): Promise<void> {
     try {
       const { username, password } = req.body;
+      console.log(username, password, ":::::dđ");
       const result = await userService.loginUser(username, password);
 
       res.status(200).json({

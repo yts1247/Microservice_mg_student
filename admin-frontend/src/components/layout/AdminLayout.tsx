@@ -66,7 +66,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       label: "Quản lý người dùng",
       children: [
         {
-          key: "/admin/users",
+          key: "/admin/users/list",
           label: "Danh sách",
           onClick: () => router.push("/admin/users"),
         },
@@ -84,7 +84,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       label: "Quản lý khóa học",
       children: [
         {
-          key: "/admin/courses",
+          key: "/admin/courses/list",
           label: "Danh sách",
           onClick: () => router.push("/admin/courses"),
         },
@@ -231,7 +231,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             >
               <Space style={{ cursor: "pointer" }}>
                 <Avatar src="https://api.dicebear.com/7.x/miniavs/svg?seed=1" />
-                <span>{user?.name || "Admin User"}</span>
+                <span>
+                  {user?.username || user?.profile?.firstName || "Admin User"}
+                </span>
               </Space>
             </Dropdown>
           </Space>

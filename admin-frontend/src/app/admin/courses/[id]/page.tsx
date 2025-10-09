@@ -68,8 +68,10 @@ export default function CourseDetailPage() {
 
   const course = courseData.data;
   const enrollmentRate =
+    course.capacity &&
+    typeof course.capacity.max === "number" &&
     course.capacity.max > 0
-      ? ((course.capacity.enrolled || 0) / course.capacity.max) * 100
+      ? ((course.capacity.current || 0) / course.capacity.max) * 100
       : 0;
 
   const getLevelColor = (level: string) => {
@@ -182,13 +184,10 @@ export default function CourseDetailPage() {
       <Card className="mb-6" title="Thông tin đăng ký">
         <Descriptions bordered column={{ xs: 1, sm: 2 }}>
           <Descriptions.Item label="Sức chứa tối đa">
-            {course.capacity.max}
+            {course.capacity?.max ?? "Không có dữ liệu"}
           </Descriptions.Item>
-          <Descriptions.Item label="Đã đăng ký">
-            {course.capacity.enrolled || 0}
-          </Descriptions.Item>
-          <Descriptions.Item label="Danh sách chờ">
-            {course.capacity.waitlist || 0}
+          <Descriptions.Item label="Đang đăng ký">
+            {course.capacity?.current ?? 0}
           </Descriptions.Item>
           <Descriptions.Item label="Tỷ lệ đăng ký">
             <Progress
@@ -202,11 +201,6 @@ export default function CourseDetailPage() {
       {course.instructor && (
         <Card className="mb-6" title="Thông tin giảng viên">
           <Descriptions bordered column={{ xs: 1, sm: 2 }}>
-            {course.instructor.teacherId && (
-              <Descriptions.Item label="Mã giảng viên">
-                {course.instructor.teacherId}
-              </Descriptions.Item>
-            )}
             {course.instructor.name && (
               <Descriptions.Item label="Tên giảng viên">
                 {course.instructor.name}
@@ -217,10 +211,26 @@ export default function CourseDetailPage() {
                 {course.instructor.email}
               </Descriptions.Item>
             )}
+            <Descriptions.Item label="Mã giảng viên">
+              {course.instructor.userId}
+            </Descriptions.Item>
           </Descriptions>
         </Card>
       )}
 
+      <Card className="mb-6" title="Thông tin bổ sung">
+        <Descriptions bordered column={{ xs: 1, sm: 2 }}>
+          <Descriptions.Item label="Ngày tạo">
+            {course.createdAt}
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày cập nhật">
+            {course.updatedAt}
+          </Descriptions.Item>
+          <Descriptions.Item label="Trạng thái hoạt động">
+            {course.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
+          </Descriptions.Item>
+        </Descriptions>
+      </Card>
       {course.schedule && (
         <Card className="mb-6" title="Lịch học">
           <Descriptions bordered column={{ xs: 1, sm: 2 }}>

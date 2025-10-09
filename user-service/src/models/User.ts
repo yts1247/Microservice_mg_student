@@ -187,9 +187,10 @@ userSchema.methods.toJSON = function (): Partial<IUser> {
 
 // Static method to find by email or username
 userSchema.statics.findByEmailOrUsername = function (identifier: string) {
+  // Always select password field for login
   return this.findOne({
     $or: [{ email: identifier }, { username: identifier }],
-  });
+  }).select("+password");
 };
 
 // Virtual for full name

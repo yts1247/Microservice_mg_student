@@ -1,31 +1,38 @@
 import { ApiService } from "./api";
 
 export interface Course {
-  id: string;
-  courseCode: string;
-  title: string;
-  description: string;
-  department: string;
-  credits: number;
-  level: "beginner" | "intermediate" | "advanced";
-  instructor: {
-    teacherId: string;
-    name: string;
-    email: string;
-  };
-  capacity: {
-    max: number;
-    enrolled: number;
-    waitlist: number;
-  };
-  schedule: {
-    semester: "spring" | "summer" | "fall" | "winter";
-    year: number;
-    timeSlots: TimeSlot[];
-  };
-  status: "draft" | "published" | "ongoing" | "completed" | "cancelled";
-  createdAt: string;
+  id?: string;
+  _id?: string;
+  courseCode?: string;
+  title?: string;
+  description?: string;
+  department?: string;
+  credits?: number;
+  level?: string;
+  prerequisites?: string[];
+  syllabus?: string[];
+  materials?: string[];
+  status?: string;
+  isActive?: boolean;
+  createdAt?: string;
   updatedAt?: string;
+  instructor?: {
+    userId?: string;
+    teacherId?: string;
+    name?: string;
+    email?: string;
+  };
+  capacity?: {
+    max?: number;
+    current?: number;
+    enrolled?: number;
+    waitlist?: number;
+  };
+  schedule?: {
+    semester?: string;
+    year?: number;
+    // timeSlots?: TimeSlot[];
+  };
 }
 
 export interface TimeSlot {

@@ -20,9 +20,18 @@ const createApiClient = (baseURL: string): AxiosInstance => {
   client.interceptors.request.use(
     (config) => {
       if (typeof window !== "undefined") {
-        const token = localStorage.getItem("authToken");
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+        // Get token from Zustand store (auth-storage key in localStorage)
+        const authStorage = localStorage.getItem("auth-storage");
+        if (authStorage) {
+          try {
+            const { state } = JSON.parse(authStorage);
+            const token = state?.token;
+            if (token) {
+              config.headers.Authorization = `Bearer ${token}`;
+            }
+          } catch (error) {
+            console.error("Failed to parse auth storage:", error);
+          }
         }
       }
       return config;
@@ -41,8 +50,7 @@ const createApiClient = (baseURL: string): AxiosInstance => {
       if (error.response?.status === 401) {
         // Token expired or invalid
         if (typeof window !== "undefined") {
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("user");
+          localStorage.removeItem("auth-storage");
           window.location.href = "/login";
         }
       }

@@ -84,13 +84,24 @@ export default function ProfileModal({
 
   return (
     <Modal
-      title="User Profile"
+      title={
+        <div className="flex items-center gap-3 text-white">
+          <div className="p-2 rounded-full bg-white/20 backdrop-blur-sm">
+            <UserOutlined className="text-white text-lg" />
+          </div>
+          <span className="text-xl font-bold">User Profile</span>
+        </div>
+      }
       open={open}
       onCancel={handleCancel}
       footer={
         editing
           ? [
-              <Button key="cancel" onClick={() => setEditing(false)}>
+              <Button
+                key="cancel"
+                onClick={() => setEditing(false)}
+                className="rounded-lg h-10 hover:scale-105 transition-all duration-300"
+              >
                 Cancel
               </Button>,
               <Button
@@ -98,8 +109,20 @@ export default function ProfileModal({
                 type="primary"
                 loading={loading}
                 onClick={handleSave}
+                className="rounded-lg h-10 border-0 hover:scale-105 transition-all duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                }}
               >
-                Save Changes
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Saving...
+                  </span>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>,
             ]
           : [
@@ -108,24 +131,53 @@ export default function ProfileModal({
                 type="primary"
                 icon={<EditOutlined />}
                 onClick={handleEdit}
+                className="rounded-lg h-10 border-0 hover:scale-105 transition-all duration-300"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                }}
               >
                 Edit Profile
               </Button>,
-              <Button key="close" onClick={onCancel}>
+              <Button
+                key="close"
+                onClick={onCancel}
+                className="rounded-lg h-10 hover:scale-105 transition-all duration-300"
+              >
                 Close
               </Button>,
             ]
       }
-      width={600}
+      width={650}
+      className="profile-modal"
     >
-      <div className="text-center mb-6">
-        <Avatar
-          size={80}
-          icon={<UserOutlined />}
-          className="bg-primary-500 mb-4"
-        />
-        <h2 className="text-xl font-semibold text-gray-800">{user.username}</h2>
-        <p className="text-gray-600 capitalize">{user.role}</p>
+      <div className="text-center mb-8 slide-in-up">
+        <div className="inline-flex p-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-xl mb-4 animate-pulse">
+          <Avatar
+            size={80}
+            icon={<UserOutlined />}
+            className="bg-white text-purple-600"
+            style={{
+              border: "4px solid rgba(255, 255, 255, 0.3)",
+            }}
+          />
+        </div>
+        <h2 className="text-2xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-1">
+          {user.username}
+        </h2>
+        <div
+          className="inline-flex px-4 py-2 rounded-full mt-2"
+          style={{
+            background:
+              user.role === "admin"
+                ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
+                : "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
+          }}
+        >
+          <span className="text-white font-bold capitalize text-sm">
+            {user.role}
+          </span>
+        </div>
       </div>
 
       {editing ? (

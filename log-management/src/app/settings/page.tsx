@@ -118,18 +118,25 @@ export default function SettingsPage() {
   return (
     <AppLayout>
       <div className="space-y-8">
-        {/* Header */}
-        <div>
-          <Title
-            level={2}
-            className="m-0 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-3"
-          >
-            <SettingOutlined className="text-blue-600" />
-            System Settings
-          </Title>
-          <p className="text-slate-600 mt-1">
-            Configure log management and cleanup policies
-          </p>
+        {/* Enhanced Header */}
+        <div className="relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl"></div>
+          <div className="relative z-10">
+            <Title
+              level={2}
+              className="m-0 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-3 font-black"
+            >
+              <div className="p-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg">
+                <SettingOutlined className="text-white text-xl" />
+              </div>
+              System Settings
+            </Title>
+            <p className="text-slate-600 mt-2 text-lg font-medium">
+              Configure log management and cleanup policies for optimal
+              performance
+            </p>
+            <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mt-3"></div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -137,12 +144,21 @@ export default function SettingsPage() {
           <div className="xl:col-span-2">
             <Card
               title={
-                <span className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <ClockCircleOutlined className="text-blue-500" />
-                  Automated Cleanup Configuration
-                </span>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500">
+                    <ClockCircleOutlined className="text-white text-lg" />
+                  </div>
+                  <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                    Automated Cleanup Configuration
+                  </span>
+                </div>
               }
-              className="border-0 shadow-lg rounded-xl"
+              className="border-0 shadow-2xl rounded-2xl overflow-hidden"
+              style={{
+                background: "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(20px)",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+              }}
             >
               <Form
                 form={form}

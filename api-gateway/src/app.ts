@@ -159,11 +159,29 @@ const serviceProxies = {
   }),
 };
 
-// Apply service routes
-app.use("/api/users", serviceProxies.users);
-app.use("/api/courses", serviceProxies.courses);
-app.use("/api/schedules", serviceProxies.schedules);
-app.use("/api/enrollments", serviceProxies.enrollments);
+// Apply service routes with RBAC protection
+app.use("/api/users", authenticateToken, serviceProxies.users);
+
+app.use(
+  "/api/courses",
+  authenticateToken,
+  requirePermission(PermissionResource.COURSE, PermissionAction.READ),
+  serviceProxies.courses
+);
+
+app.use(
+  "/api/schedules",
+  authenticateToken,
+  requirePermission(PermissionResource.SCHEDULE, PermissionAction.READ),
+  serviceProxies.schedules
+);
+
+app.use(
+  "/api/enrollments",
+  authenticateToken,
+  requirePermission(PermissionResource.ENROLLMENT, PermissionAction.READ),
+  serviceProxies.enrollments
+);
 
 // 404 handler
 app.use("*", (req: Request, res: Response) => {

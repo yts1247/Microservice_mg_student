@@ -1,6 +1,7 @@
 import mongoose, { Schema, Model, Document } from "mongoose";
 import bcrypt from "bcryptjs";
 import { IUser, IUserMethods, IUserDocument } from "../types/user.types";
+import { IRole } from "./Role";
 
 interface IUserModel extends Model<IUserDocument> {
   findByEmailOrUsername(identifier: string): Promise<IUserDocument | null>;
@@ -38,6 +39,12 @@ const userSchema = new Schema<IUserDocument>(
       enum: ["student", "teacher", "admin"],
       default: "student",
     },
+    roles: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Role",
+      },
+    ],
     profile: {
       firstName: {
         type: String,

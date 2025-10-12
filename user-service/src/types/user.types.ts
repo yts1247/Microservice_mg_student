@@ -1,9 +1,12 @@
+import { IRole } from "../models/Role";
+
 export interface IUser {
   _id?: string;
   username: string;
   email: string;
   password: string;
   role: "student" | "teacher" | "admin";
+  roles?: IRole[];
   isActive: boolean;
   lastLogin?: Date;
   profile: IProfile;

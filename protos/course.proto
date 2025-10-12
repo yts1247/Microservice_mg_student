@@ -1,0 +1,154 @@
+syntax = "proto3";
+
+package course;
+
+import "google/protobuf/timestamp.proto";
+
+// Course Service Definition
+service CourseService {
+  // Course Management
+  rpc CreateCourse(CreateCourseRequest) returns (CourseResponse);
+  rpc GetCourse(GetCourseRequest) returns (CourseResponse);
+  rpc UpdateCourse(UpdateCourseRequest) returns (CourseResponse);
+  rpc DeleteCourse(DeleteCourseRequest) returns (DeleteCourseResponse);
+  rpc ListCourses(ListCoursesRequest) returns (ListCoursesResponse);
+  
+  // Course Search and Filter
+  rpc SearchCourses(SearchCoursesRequest) returns (ListCoursesResponse);
+  rpc GetCoursesByInstructor(GetCoursesByInstructorRequest) returns (ListCoursesResponse);
+  rpc GetCoursesByCategory(GetCoursesByCategoryRequest) returns (ListCoursesResponse);
+  
+  // Course Statistics
+  rpc GetCourseStats(GetCourseStatsRequest) returns (CourseStatsResponse);
+}
+
+// Messages
+message Course {
+  string id = 1;
+  string course_code = 2;
+  string title = 3;
+  string description = 4;
+  int32 credits = 5;
+  string category = 6;
+  string instructor_id = 7;
+  string instructor_name = 8;
+  int32 max_students = 9;
+  int32 enrolled_students = 10;
+  repeated string prerequisites = 11;
+  repeated string tags = 12;
+  string difficulty_level = 13;
+  double duration_hours = 14;
+  bool is_active = 15;
+  google.protobuf.Timestamp start_date = 16;
+  google.protobuf.Timestamp end_date = 17;
+  google.protobuf.Timestamp created_at = 18;
+  google.protobuf.Timestamp updated_at = 19;
+}
+
+message CourseStats {
+  int32 total_courses = 1;
+  int32 active_courses = 2;
+  int32 inactive_courses = 3;
+  int32 total_enrollments = 4;
+  double average_rating = 5;
+  repeated CategoryStats category_stats = 6;
+}
+
+message CategoryStats {
+  string category = 1;
+  int32 course_count = 2;
+  int32 enrollment_count = 3;
+}
+
+// Request/Response Messages
+message CreateCourseRequest {
+  string course_code = 1;
+  string title = 2;
+  string description = 3;
+  int32 credits = 4;
+  string category = 5;
+  string instructor_id = 6;
+  int32 max_students = 7;
+  repeated string prerequisites = 8;
+  repeated string tags = 9;
+  string difficulty_level = 10;
+  double duration_hours = 11;
+  google.protobuf.Timestamp start_date = 12;
+  google.protobuf.Timestamp end_date = 13;
+}
+
+message GetCourseRequest {
+  string id = 1;
+}
+
+message CourseResponse {
+  bool success = 1;
+  string message = 2;
+  Course course = 3;
+}
+
+message UpdateCourseRequest {
+  string id = 1;
+  Course course = 2;
+}
+
+message DeleteCourseRequest {
+  string id = 1;
+}
+
+message DeleteCourseResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ListCoursesRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  string category = 3;
+  string instructor_id = 4;
+  bool is_active = 5;
+  string search = 6;
+}
+
+message ListCoursesResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Course courses = 3;
+  int32 total = 4;
+  int32 pages = 5;
+  int32 current = 6;
+}
+
+message SearchCoursesRequest {
+  string query = 1;
+  string category = 2;
+  string difficulty_level = 3;
+  int32 min_credits = 4;
+  int32 max_credits = 5;
+  int32 page = 6;
+  int32 limit = 7;
+}
+
+message GetCoursesByInstructorRequest {
+  string instructor_id = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message GetCoursesByCategoryRequest {
+  string category = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message GetCourseStatsRequest {
+  string instructor_id = 1; // Optional: stats for specific instructor
+  google.protobuf.Timestamp start_date = 2; // Optional: date range filter
+  google.protobuf.Timestamp end_date = 3;
+}
+
+message CourseStatsResponse {
+  bool success = 1;
+  string message = 2;
+  CourseStats stats = 3;
+}

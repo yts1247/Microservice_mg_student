@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+package enrollment;
+
+import "google/protobuf/timestamp.proto";
+
+// Enrollment Service Definition
+service EnrollmentService {
+  // Enrollment Management
+  rpc EnrollStudent(EnrollStudentRequest) returns (EnrollmentResponse);
+  rpc UnenrollStudent(UnenrollStudentRequest) returns (EnrollmentResponse);
+  rpc GetEnrollment(GetEnrollmentRequest) returns (EnrollmentResponse);
+  rpc UpdateEnrollment(UpdateEnrollmentRequest) returns (EnrollmentResponse);
+  
+  // Enrollment Queries
+  rpc GetStudentEnrollments(GetStudentEnrollmentsRequest) returns (ListEnrollmentsResponse);
+  rpc GetCourseEnrollments(GetCourseEnrollmentsRequest) returns (ListEnrollmentsResponse);
+  rpc GetEnrollmentStats(GetEnrollmentStatsRequest) returns (EnrollmentStatsResponse);
+  
+  // Validation
+  rpc CheckEnrollmentEligibility(CheckEligibilityRequest) returns (EligibilityResponse);
+  rpc GetEnrollmentCapacity(GetCapacityRequest) returns (CapacityResponse);
+}
+
+// Messages
+message Enrollment {
+  string id = 1;
+  string student_id = 2;
+  string course_id = 3;
+  string student_name = 4;
+  string course_title = 5;
+  string status = 6;
+  google.protobuf.Timestamp enrollment_date = 7;
+  google.protobuf.Timestamp completion_date = 8;
+  double grade = 9;
+  string grade_letter = 10;
+  int32 credits = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+}
+
+message EnrollmentStats {
+  int32 total_enrollments = 1;
+  int32 active_enrollments = 2;
+  int32 completed_enrollments = 3;
+  int32 dropped_enrollments = 4;
+  double average_grade = 5;
+  repeated CourseEnrollmentStats course_stats = 6;
+  repeated StudentEnrollmentStats student_stats = 7;
+}
+
+message CourseEnrollmentStats {
+  string course_id = 1;
+  string course_title = 2;
+  int32 enrolled_count = 3;
+  int32 max_capacity = 4;
+  double fill_rate = 5;
+  double average_grade = 6;
+}
+
+message StudentEnrollmentStats {
+  string student_id = 1;
+  string student_name = 2;
+  int32 total_enrollments = 3;
+  int32 completed_courses = 4;
+  double cumulative_gpa = 5;
+  int32 total_credits = 6;
+}
+
+// Request/Response Messages
+message EnrollStudentRequest {
+  string student_id = 1;
+  string course_id = 2;
+}
+
+message UnenrollStudentRequest {
+  string student_id = 1;
+  string course_id = 2;
+  string reason = 3;
+}
+
+message GetEnrollmentRequest {
+  string id = 1;
+}
+
+message EnrollmentResponse {
+  bool success = 1;
+  string message = 2;
+  Enrollment enrollment = 3;
+}
+
+message UpdateEnrollmentRequest {
+  string id = 1;
+  string status = 2;
+  double grade = 3;
+  string grade_letter = 4;
+  google.protobuf.Timestamp completion_date = 5;
+}
+
+message GetStudentEnrollmentsRequest {
+  string student_id = 1;
+  string status = 2; // Optional filter
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message GetCourseEnrollmentsRequest {
+  string course_id = 1;
+  string status = 2; // Optional filter
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message ListEnrollmentsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Enrollment enrollments = 3;
+  int32 total = 4;
+  int32 pages = 5;
+  int32 current = 6;
+}
+
+message GetEnrollmentStatsRequest {
+  string student_id = 1; // Optional: stats for specific student
+  string course_id = 2; // Optional: stats for specific course
+  google.protobuf.Timestamp start_date = 3; // Optional: date range
+  google.protobuf.Timestamp end_date = 4;
+}
+
+message EnrollmentStatsResponse {
+  bool success = 1;
+  string message = 2;
+  EnrollmentStats stats = 3;
+}
+
+message CheckEligibilityRequest {
+  string student_id = 1;
+  string course_id = 2;
+}
+
+message EligibilityResponse {
+  bool eligible = 1;
+  string message = 2;
+  repeated string reasons = 3; // Reasons if not eligible
+}
+
+message GetCapacityRequest {
+  string course_id = 1;
+}
+
+message CapacityResponse {
+  bool success = 1;
+  int32 max_capacity = 2;
+  int32 current_enrolled = 3;
+  int32 available_spots = 4;
+  bool is_full = 5;
+}

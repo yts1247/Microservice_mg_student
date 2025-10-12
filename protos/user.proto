@@ -1,0 +1,268 @@
+
+// =============================
+// user.proto - Định nghĩa API gRPC cho User Service
+// =============================
+syntax = "proto3";
+
+package user; // Tên package cho các message và service
+
+import "google/protobuf/timestamp.proto"; // Import kiểu timestamp
+
+// =============================
+// ĐỊNH NGHĨA SERVICE
+// =============================
+// Service UserService cung cấp các hàm xác thực, quản lý user, và RBAC
+service UserService {
+  // ==== AUTHENTICATION ====
+  rpc Login(LoginRequest) returns (AuthResponse); // Đăng nhập, trả về token và thông tin user
+  rpc Register(RegisterRequest) returns (AuthResponse); // Đăng ký tài khoản mới
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse); // Kiểm tra token hợp lệ
+  rpc RefreshToken(RefreshTokenRequest) returns (AuthResponse); // Làm mới token
+
+  // ==== USER MANAGEMENT ====
+  rpc GetUser(GetUserRequest) returns (UserResponse); // Lấy thông tin user theo id
+  rpc UpdateUser(UpdateUserRequest) returns (UserResponse); // Cập nhật thông tin user
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse); // Xóa user
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse); // Lấy danh sách user (phân trang, lọc)
+
+  // ==== RBAC (Role-Based Access Control) ====
+  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse); // Gán role cho user
+  rpc RemoveRole(RemoveRoleRequest) returns (RemoveRoleResponse); // Gỡ role khỏi user
+  rpc GetUserPermissions(GetUserPermissionsRequest) returns (GetUserPermissionsResponse); // Lấy quyền của user
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse); // Kiểm tra user có quyền thực hiện action không
+}
+
+
+// =============================
+// ĐỊNH NGHĨA MESSAGE (Kiểu dữ liệu)
+// =============================
+
+// Thông tin user
+message User {
+  string id = 1; // ID duy nhất
+  string username = 2; // Tên đăng nhập
+  string email = 3; // Email
+  string role = 4; // Role chính
+  repeated Role roles = 5; // Danh sách role (nhiều role)
+  bool is_active = 6; // Trạng thái hoạt động
+  google.protobuf.Timestamp last_login = 7; // Lần đăng nhập cuối
+  Profile profile = 8; // Thông tin cá nhân
+  StudentInfo student_info = 9; // Nếu là sinh viên
+  TeacherInfo teacher_info = 10; // Nếu là giáo viên
+  google.protobuf.Timestamp created_at = 11; // Ngày tạo
+  google.protobuf.Timestamp updated_at = 12; // Ngày cập nhật
+}
+
+
+// Thông tin cá nhân
+message Profile {
+  string first_name = 1; // Họ
+  string last_name = 2; // Tên
+  string phone = 3; // Số điện thoại
+  Address address = 4; // Địa chỉ
+  google.protobuf.Timestamp date_of_birth = 5; // Ngày sinh
+  string avatar = 6; // Ảnh đại diện
+}
+
+
+// Địa chỉ
+message Address {
+  string street = 1; // Đường
+  string city = 2; // Thành phố
+  string state = 3; // Tỉnh/Bang
+  string zip_code = 4; // Mã bưu điện
+  string country = 5; // Quốc gia
+}
+
+
+// Thông tin sinh viên
+message StudentInfo {
+  string student_id = 1; // Mã sinh viên
+  string major = 2; // Ngành học
+  int32 year = 3; // Năm học
+  double gpa = 4; // Điểm trung bình
+  google.protobuf.Timestamp enrollment_date = 5; // Ngày nhập học
+  string status = 6; // Trạng thái
+}
+
+
+// Thông tin giáo viên
+message TeacherInfo {
+  string teacher_id = 1; // Mã giáo viên
+  string department = 2; // Phòng ban
+  string position = 3; // Chức vụ
+  repeated string specialization = 4; // Chuyên môn
+  google.protobuf.Timestamp hire_date = 5; // Ngày vào làm
+  string office = 6; // Văn phòng
+  string phone_extension = 7; // Số máy lẻ
+}
+
+
+// Thông tin role (vai trò)
+message Role {
+  string id = 1; // ID role
+  string name = 2; // Tên role
+  string description = 3; // Mô tả
+  repeated Permission permissions = 4; // Danh sách quyền
+  bool is_active = 5; // Trạng thái
+}
+
+
+// Thông tin quyền
+message Permission {
+  string id = 1; // ID quyền
+  string name = 2; // Tên quyền
+  string description = 3; // Mô tả
+  string resource = 4; // Tài nguyên
+  string action = 5; // Hành động
+}
+
+
+// =============================
+// ĐỊNH NGHĨA REQUEST/RESPONSE
+// =============================
+
+// Đăng nhập
+message LoginRequest {
+  string username = 1; // Tên đăng nhập
+  string password = 2; // Mật khẩu
+}
+
+
+// Đăng ký tài khoản
+message RegisterRequest {
+  string username = 1; // Tên đăng nhập
+  string email = 2; // Email
+  string password = 3; // Mật khẩu
+  string role = 4; // Role mặc định
+  Profile profile = 5; // Thông tin cá nhân
+  StudentInfo student_info = 6; // Nếu là sinh viên
+  TeacherInfo teacher_info = 7; // Nếu là giáo viên
+}
+
+
+// Kết quả xác thực (login/register/refresh)
+message AuthResponse {
+  bool success = 1; // Thành công?
+  string message = 2; // Thông báo
+  User user = 3; // Thông tin user
+  string token = 4; // Token truy cập
+  string refresh_token = 5; // Token làm mới
+}
+
+
+// Kiểm tra token
+message ValidateTokenRequest {
+  string token = 1; // Token cần kiểm tra
+}
+
+
+// Kết quả kiểm tra token
+message ValidateTokenResponse {
+  bool valid = 1; // Token hợp lệ?
+  User user = 2; // Thông tin user nếu hợp lệ
+  string message = 3; // Thông báo
+}
+
+
+// Làm mới token
+message RefreshTokenRequest {
+  string refresh_token = 1; // Token làm mới
+}
+
+
+// Lấy user theo id
+message GetUserRequest {
+  string id = 1; // ID user
+}
+
+
+// Kết quả lấy/cập nhật user
+message UserResponse {
+  bool success = 1; // Thành công?
+  string message = 2; // Thông báo
+  User user = 3; // Thông tin user
+}
+
+
+// Cập nhật user
+message UpdateUserRequest {
+  string id = 1; // ID user
+  User user = 2; // Thông tin mới
+}
+
+
+// Xóa user
+message DeleteUserRequest {
+  string id = 1; // ID user
+}
+
+
+// Kết quả xóa user
+message DeleteUserResponse {
+  bool success = 1; // Thành công?
+  string message = 2; // Thông báo
+}
+
+
+// Lấy danh sách user (phân trang, lọc)
+message ListUsersRequest {
+  int32 page = 1; // Trang
+  int32 limit = 2; // Số lượng/trang
+  string role = 3; // Lọc theo role
+  bool is_active = 4; // Lọc theo trạng thái
+  string search = 5; // Tìm kiếm
+}
+
+
+// Kết quả danh sách user
+message ListUsersResponse {
+  bool success = 1; // Thành công?
+  string message = 2; // Thông báo
+  repeated User users = 3; // Danh sách user
+  int32 total = 4; // Tổng số user
+  int32 pages = 5; // Tổng số trang
+  int32 current = 6; // Trang hiện tại
+}
+
+
+// ==== RBAC ==== (Quản lý vai trò và quyền)
+message AssignRoleRequest {
+  string user_id = 1; // ID user
+  string role_id = 2; // ID role
+}
+
+message AssignRoleResponse {
+  bool success = 1; // Thành công?
+  string message = 2; // Thông báo
+}
+
+message RemoveRoleRequest {
+  string user_id = 1; // ID user
+  string role_id = 2; // ID role
+}
+
+message RemoveRoleResponse {
+  bool success = 1; // Thành công?
+  string message = 2; // Thông báo
+}
+
+message GetUserPermissionsRequest {
+  string user_id = 1; // ID user
+}
+
+message GetUserPermissionsResponse {
+  bool success = 1; // Thành công?
+  repeated string permissions = 2; // Danh sách quyền
+}
+
+message CheckPermissionRequest {
+  string user_id = 1; // ID user
+  string resource = 2; // Tài nguyên
+  string action = 3; // Hành động
+}
+
+message CheckPermissionResponse {
+  bool allowed = 1; // Được phép?
+  string message = 2; // Thông báo
+}

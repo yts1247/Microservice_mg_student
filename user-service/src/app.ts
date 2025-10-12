@@ -10,6 +10,7 @@ import swaggerUi from "swagger-ui-express";
 import { connectDatabase } from "./config/database";
 import logger from "./config/logger";
 import userRoutes from "./routes/userRoutes";
+import adminRoutes from "./routes/adminRoutes";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -88,6 +89,8 @@ app.get("/health", (req: Request, res: Response) => {
 
 // Routes
 app.use("/api/users", userRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api", adminRoutes); // Also mount admin routes at /api for logs routes
 
 // 404 handler
 app.use("*", (req: Request, res: Response) => {

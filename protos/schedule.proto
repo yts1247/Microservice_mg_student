@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package schedule;
+
+import "google/protobuf/timestamp.proto";
+
+// Schedule Service Definition
+service ScheduleService {
+  // Schedule Management
+  rpc CreateSchedule(CreateScheduleRequest) returns (ScheduleResponse);
+  rpc GetSchedule(GetScheduleRequest) returns (ScheduleResponse);
+  rpc UpdateSchedule(UpdateScheduleRequest) returns (ScheduleResponse);
+  rpc DeleteSchedule(DeleteScheduleRequest) returns (DeleteScheduleResponse);
+  
+  // Schedule Queries
+  rpc GetCourseSchedules(GetCourseSchedulesRequest) returns (ListSchedulesResponse);
+  rpc GetInstructorSchedules(GetInstructorSchedulesRequest) returns (ListSchedulesResponse);
+  rpc GetStudentSchedules(GetStudentSchedulesRequest) returns (ListSchedulesResponse);
+  rpc GetRoomSchedules(GetRoomSchedulesRequest) returns (ListSchedulesResponse);
+  
+  // Schedule Validation
+  rpc CheckScheduleConflict(CheckConflictRequest) returns (ConflictResponse);
+  rpc GetAvailableSlots(GetAvailableSlotsRequest) returns (AvailableSlotsResponse);
+}
+
+// Messages
+message Schedule {
+  string id = 1;
+  string course_id = 2;
+  string course_title = 3;
+  string instructor_id = 4;
+  string instructor_name = 5;
+  string room = 6;
+  string building = 7;
+  repeated string days_of_week = 8; // ["Monday", "Wednesday", "Friday"]
+  string start_time = 9; // "09:00"
+  string end_time = 10; // "10:30"
+  google.protobuf.Timestamp start_date = 11;
+  google.protobuf.Timestamp end_date = 12;
+  string schedule_type = 13; // "lecture", "lab", "tutorial"
+  int32 max_capacity = 14;
+  bool is_active = 15;
+  repeated string notes = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+}
+
+message TimeSlot {
+  string start_time = 1;
+  string end_time = 2;
+  repeated string days_of_week = 3;
+  bool available = 4;
+  string reason = 5; // If not available
+}
+
+message ConflictInfo {
+  bool has_conflict = 1;
+  repeated string conflicting_schedules = 2;
+  string conflict_reason = 3;
+}
+
+// Request/Response Messages
+message CreateScheduleRequest {
+  string course_id = 1;
+  string instructor_id = 2;
+  string room = 3;
+  string building = 4;
+  repeated string days_of_week = 5;
+  string start_time = 6;
+  string end_time = 7;
+  google.protobuf.Timestamp start_date = 8;
+  google.protobuf.Timestamp end_date = 9;
+  string schedule_type = 10;
+  int32 max_capacity = 11;
+  repeated string notes = 12;
+}
+
+message GetScheduleRequest {
+  string id = 1;
+}
+
+message ScheduleResponse {
+  bool success = 1;
+  string message = 2;
+  Schedule schedule = 3;
+}
+
+message UpdateScheduleRequest {
+  string id = 1;
+  Schedule schedule = 2;
+}
+
+message DeleteScheduleRequest {
+  string id = 1;
+}
+
+message DeleteScheduleResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetCourseSchedulesRequest {
+  string course_id = 1;
+  bool active_only = 2;
+}
+
+message GetInstructorSchedulesRequest {
+  string instructor_id = 1;
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+  bool active_only = 4;
+}
+
+message GetStudentSchedulesRequest {
+  string student_id = 1;
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+  bool active_only = 4;
+}
+
+message GetRoomSchedulesRequest {
+  string room = 1;
+  string building = 2;
+  google.protobuf.Timestamp start_date = 3;
+  google.protobuf.Timestamp end_date = 4;
+  bool active_only = 5;
+}
+
+message ListSchedulesResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Schedule schedules = 3;
+  int32 total = 4;
+}
+
+message CheckConflictRequest {
+  string instructor_id = 1;
+  string room = 2;
+  string building = 3;
+  repeated string days_of_week = 4;
+  string start_time = 5;
+  string end_time = 6;
+  google.protobuf.Timestamp start_date = 7;
+  google.protobuf.Timestamp end_date = 8;
+  string exclude_schedule_id = 9; // For updates
+}
+
+message ConflictResponse {
+  bool success = 1;
+  ConflictInfo conflict_info = 2;
+}
+
+message GetAvailableSlotsRequest {
+  string instructor_id = 1;
+  string room = 2;
+  string building = 3;
+  google.protobuf.Timestamp date = 4;
+  int32 duration_minutes = 5; // Required slot duration
+}
+
+message AvailableSlotsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated TimeSlot available_slots = 3;
+}

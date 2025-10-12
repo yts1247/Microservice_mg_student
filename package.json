@@ -5,7 +5,7 @@
   "scripts": {
     "install-all": "yarn install-user && yarn install-course && yarn install-schedule && yarn install-enrollment && yarn install-gateway && yarn install-admin-frontend",
     "install-user": "cd user-service && yarn",
-    "install-course": "cd course-service && yarn", 
+    "install-course": "cd course-service && yarn",
     "install-schedule": "cd schedule-service && yarn",
     "install-enrollment": "cd enrollment-service && yarn",
     "install-gateway": "cd api-gateway && yarn",
@@ -19,7 +19,7 @@
     "build-admin-frontend": "cd admin-frontend && yarn build",
     "dev-user": "cd user-service && yarn dev",
     "dev-course": "cd course-service && yarn dev",
-    "dev-schedule": "cd schedule-service && yarn dev", 
+    "dev-schedule": "cd schedule-service && yarn dev",
     "dev-enrollment": "cd enrollment-service && yarn dev",
     "dev-gateway": "cd api-gateway && yarn dev",
     "dev-admin-frontend": "cd admin-frontend && yarn dev",
@@ -28,7 +28,7 @@
     "start-user": "cd user-service && yarn start",
     "start-course": "cd course-service && yarn start",
     "start-schedule": "cd schedule-service && yarn start",
-    "start-enrollment": "cd enrollment-service && yarn start", 
+    "start-enrollment": "cd enrollment-service && yarn start",
     "start-gateway": "cd api-gateway && yarn start",
     "start-admin-frontend": "cd admin-frontend && yarn start",
     "type-check": "tsc --noEmit",
@@ -49,11 +49,23 @@
     "docker-clean": "docker-compose down -v --remove-orphans && docker system prune -f"
   },
   "devDependencies": {
+    "@types/node": "^20.10.5",
     "concurrently": "^8.2.2",
-    "typescript": "^5.3.3",
-    "@types/node": "^20.10.5"
+    "typescript": "^5.3.3"
   },
-  "keywords": ["microservices", "student", "management", "nodejs", "express", "mongodb"],
+  "keywords": [
+    "microservices",
+    "student",
+    "management",
+    "nodejs",
+    "express",
+    "mongodb"
+  ],
   "author": "Student Management Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "ioredis": "^5.8.1",
+    "redis": "^5.8.3"
+  }
 }

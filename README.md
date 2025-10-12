@@ -1,60 +1,122 @@
-# Student Management System - Microservices with TypeScript
+# Student Management System - Microservices with RBAC & gRPC
 
-## Tổng quan
-Hệ thống microservice quản lý học sinh, lịch học và khóa học được xây dựng với **TypeScript**, kiến trúc phân tán, mỗi service độc lập và có thể scale riêng biệt. Hệ thống đã được chuyển đổi hoàn toàn từ JavaScript sang TypeScript để tăng cường type safety và trải nghiệm phát triển.
+## 🌟 Tổng quan
+Hệ thống microservice quản lý học sinh hiện đại với **TypeScript**, **RBAC** (Role-Based Access Control), **gRPC**, và **Message Broker**. Được thiết kế theo kiến trúc phân tán, mỗi service độc lập và có thể scale riêng biệt.
+
+### ✨ Tính năng nổi bật
+- 🔐 **RBAC System**: Hệ thống phân quyền dựa trên vai trò và quyền hạn
+- ⚡ **gRPC Communication**: Tối ưu hiệu suất giao tiếp giữa các services
+- 📨 **Message Broker**: Hệ thống logging real-time với Redis/RabbitMQ
+- 🎯 **TypeScript**: Full type safety và enhanced development experience
+- 🔄 **Real-time Logging**: Audit trails và monitoring system
+- 🛡️ **Security**: JWT authentication với permission-based authorization
 
 ## Kiến trúc hệ thống
 
-### Services
-1. **User Service** (Port: 3001)
-   - Quản lý thông tin học sinh và giáo viên
-   - Xác thực và phân quyền (JWT)
-   - Database: MongoDB
+### 🏗️ Services Architecture
 
-2. **Course Service** (Port: 3002)
-   - Quản lý thông tin khóa học, môn học
-   - Quản lý giáo trình và tài liệu
-   - Database: MongoDB
+1. **User Service** (Port: 3001, gRPC: 50051)
+   - 👥 Quản lý thông tin học sinh và giáo viên
+   - 🔐 **RBAC Core**: Roles, Permissions, Authentication
+   - 🔒 JWT authentication và authorization
+   - 📡 **gRPC Server**: User authentication services
+   - 📊 **Message Broker Integration**: Enhanced logging system
+   - 🗄️ Database: MongoDB
 
-3. **Schedule Service** (Port: 3003)
-   - Quản lý lịch học, thời khóa biểu
-   - Xử lý xung đột lịch học
-   - Database: MongoDB
+2. **Course Service** (Port: 3002, gRPC: 50052)
+   - 📚 Quản lý thông tin khóa học, môn học
+   - 📖 Quản lý giáo trình và tài liệu
+   - 🔐 **RBAC Protected**: Permission-based access control
+   - 📡 **gRPC Server**: Course management services
+   - 🗄️ Database: MongoDB
 
-4. **Enrollment Service** (Port: 3004)
-   - Quản lý việc đăng ký khóa học
-   - Theo dõi tiến độ học tập
-   - Database: MongoDB
+3. **Schedule Service** (Port: 3003, gRPC: 50053)
+   - 📅 Quản lý lịch học, thời khóa biểu
+   - ⚡ Xử lý xung đột lịch học
+   - 🔐 **RBAC Protected**: Role-based schedule access
+   - 📡 **gRPC Server**: Schedule management services
+   - 🗄️ Database: MongoDB
+
+4. **Enrollment Service** (Port: 3004, gRPC: 50054)
+   - 📝 Quản lý việc đăng ký khóa học
+   - 📈 Theo dõi tiến độ học tập
+   - 🔐 **RBAC Protected**: Enrollment permissions
+   - 📡 **gRPC Server**: Enrollment services
+   - 🗄️ Database: MongoDB
 
 5. **API Gateway** (Port: 3000)
-   - Route requests đến các service phù hợp
-   - Load balancing
-   - Authentication & Authorization
+   - 🌐 Route requests với RBAC middleware
+   - ⚖️ Load balancing và rate limiting
+   - 🔐 **RBAC Authentication**: Token validation
+   - 📡 **gRPC Clients**: Communication with all services
+   - 📊 **Request Logging**: Audit trail system
 
-### Công nghệ sử dụng
+6. **Message Broker System**
+   - 📨 **Redis**: Primary message broker for logging
+   - 🐰 **RabbitMQ**: Alternative message queue (optional)
+   - 📈 **Real-time Monitoring**: System statistics
+   - 🔍 **Audit Logs**: User action tracking
+
+### 🛠️ Công nghệ sử dụng
 - **Backend**: Node.js, Express.js, **TypeScript**
 - **Database**: MongoDB với Mongoose ODM
 - **Authentication**: JWT (JSON Web Tokens)
+- **Authorization**: **RBAC** (Role-Based Access Control)
+- **Communication**: **gRPC** với Protocol Buffers
+- **Message Broker**: **Redis** / RabbitMQ cho logging system
 - **Type Safety**: TypeScript với strict mode
 - **Development**: ts-node-dev, nodemon
 - **Build Tool**: TypeScript compiler (tsc)
 - **Testing**: Jest, Supertest
-- **API Documentation**: Swagger/OpenAPI
+- **API Documentation**: Swagger/OpenAPI  
 - **Containerization**: Docker & Docker Compose
+- **Frontend**: React.js với Ant Design, RBAC Context
+- **Monitoring**: Enhanced logging với audit trails
 
-### Luồng dữ liệu chính
-1. Client gửi request đến API Gateway
-2. API Gateway xác thực và route request đến service tương ứng
-3. Service xử lý logic business và tương tác với database
-4. Kết quả được trả về thông qua API Gateway
+### 🔄 Luồng dữ liệu với RBAC & gRPC
+1. **Client Request**: Client gửi request với JWT token đến API Gateway
+2. **RBAC Authentication**: API Gateway xác thực token qua gRPC với User Service
+3. **Permission Check**: Kiểm tra quyền hạn dựa trên resource và action
+4. **Service Communication**: API Gateway gọi service tương ứng qua gRPC
+5. **Business Logic**: Service xử lý logic và tương tác với database
+6. **Audit Logging**: Message Broker ghi log audit và monitoring
+7. **Response**: Kết quả được trả về thông qua API Gateway với security headers
 
-## Cài đặt và chạy
+```
+Frontend → API Gateway → gRPC → Service → MongoDB
+    ↓         ↓ RBAC        ↓        ↓        ↓
+Permission  Auth Check   Business  Data     Audit
+ Context   + Logging     Logic    Storage   Logs
+```
 
-### Yêu cầu hệ thống
+## 🚀 Quick Start
+
+### 📋 Yêu cầu hệ thống
 - Node.js 18+
 - MongoDB 6.0+
+- Redis 6.0+
 - Docker & Docker Compose
 - npm hoặc yarn
+
+### ⚡ Quick Setup (Recommended)
+```bash
+# 1. Clone và setup
+git clone <repository-url>
+cd microservice_mg_student
+
+# 2. Start với Docker Compose
+docker-compose up -d
+
+# 3. Kiểm tra hệ thống
+./test-rbac-system.sh   # Linux/Mac
+# hoặc
+./test-rbac-system.ps1  # Windows PowerShell
+
+# 4. Access services
+# API Gateway: http://localhost:3000
+# Swagger Docs: http://localhost:3000/api/docs
+# Admin Panel: http://localhost:3008
+```
 
 ### Khởi chạy hệ thống
 
@@ -116,14 +178,18 @@ cd api-gateway && yarn type-check
 cd admin-frontend && yarn type-check
 ```
 
-### Endpoints chính
-- API Gateway: http://localhost:3000
-- Admin Frontend: http://localhost:3008 (local mapped port)
- - Admin Frontend: http://localhost:3008 (local mapped port)
-- User Service: http://localhost:3001
-- Course Service: http://localhost:3002
-- Schedule Service: http://localhost:3003
-- Enrollment Service: http://localhost:3004
+### 🌐 Service Endpoints
+- **API Gateway**: http://localhost:3000 *(Main entry point)*
+- **Admin Frontend**: http://localhost:3008 *(RBAC-enabled UI)*
+- **User Service**: http://localhost:3001 *(RBAC Core)*
+- **Course Service**: http://localhost:3002 *(Protected)*
+- **Schedule Service**: http://localhost:3003 *(Protected)*
+- **Enrollment Service**: http://localhost:3004 *(Protected)*
+
+### 📚 Documentation & Tools
+- **API Documentation**: http://localhost:3000/api/docs
+- **Health Checks**: http://localhost:3000/health
+- **Admin Panel**: http://localhost:3008 *(Role-based navigation)*
 
 ## API Documentation
 Sau khi khởi chạy, Swagger UI có sẵn tại:
@@ -164,10 +230,104 @@ microservice_be/
 - ✅ **Build Pipeline**: TypeScript compilation pipeline
 - ✅ **Development Experience**: Hot reload với ts-node-dev
 
+## 🔐 RBAC System Overview
+
+### Default Roles
+```typescript
+SUPER_ADMIN: Full system access
+ADMIN: Administrative functions
+TEACHER: Course and student management  
+STUDENT: Limited course access
+MODERATOR: Content moderation
+VIEWER: Read-only access
+```
+
+### Permission Structure
+```typescript
+// Resources: USER, COURSE, SCHEDULE, ENROLLMENT, etc.
+// Actions: CREATE, READ, UPDATE, DELETE, MANAGE, etc.
+
+// Example: Teacher role
+permissions: [
+  "course:read", "course:update", 
+  "student:read", "schedule:manage"
+]
+```
+
+### Frontend RBAC
+```tsx
+// Permission-based UI rendering
+<RBACGuard resource="course" action="create">
+  <CreateCourseButton />
+</RBACGuard>
+
+// Role-based navigation
+const canAccessAdmin = useRole('admin');
+```
+
+## 🧪 Testing
+
+### Integration Tests
+```bash
+# Test toàn bộ hệ thống RBAC
+./test-rbac-system.sh      # Linux/Mac
+./test-rbac-system.ps1     # Windows PowerShell
+
+# Manual testing
+curl -X POST http://localhost:3000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@example.com", "password": "admin123"}'
+```
+
+### Test Coverage
+- ✅ Authentication flow
+- ✅ Permission validation
+- ✅ gRPC communication
+- ✅ Message broker logging
+- ✅ Frontend RBAC components
+
+## 📊 Monitoring & Logging
+
+### Message Broker Logs
+```bash
+# Redis logs
+redis-cli monitor
+
+# View audit logs
+redis-cli lrange audit_logs:info 0 -1
+```
+
+### Performance Metrics
+- 🔒 Authentication success rates
+- ⚡ gRPC request latencies  
+- 📊 Permission check performance
+- 📈 System resource usage
+
 ## Scripts NPM
 Mỗi service có các scripts sau:
 - `npm run dev` - Development mode với TypeScript hot reload
-- `npm run build` - Build TypeScript to JavaScript
+- `npm run build` - Build TypeScript to JavaScript  
 - `npm start` - Chạy production build
 - `npm run type-check` - Kiểm tra TypeScript types
 - `npm test` - Chạy unit tests
+
+## 📖 Documentation
+
+- 📋 **[RBAC Implementation Guide](./RBAC_IMPLEMENTATION.md)** - Technical details
+- 🚀 **[Deployment Guide](./DEPLOYMENT_GUIDE.md)** - Setup instructions
+- 📝 **[API Documentation](http://localhost:3000/api/docs)** - Interactive docs
+
+---
+
+## 🎯 Key Features Implemented
+
+✅ **Complete RBAC System** - Role-based access control across all services  
+✅ **gRPC Optimization** - High-performance inter-service communication  
+✅ **Message Broker Logging** - Real-time audit trails with Redis/RabbitMQ  
+✅ **Frontend RBAC** - Permission-based UI components and navigation  
+✅ **Type Safety** - Full TypeScript implementation with strict mode  
+✅ **Security** - JWT authentication with comprehensive authorization  
+✅ **Monitoring** - Enhanced logging and performance metrics  
+✅ **Testing** - Comprehensive test suite for all components
+
+**Hệ thống đã sẵn sàng cho production với đầy đủ tính năng bảo mật và tối ưu hiệu suất!** 🚀

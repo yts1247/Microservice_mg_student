@@ -34,51 +34,58 @@ import {
 
 const { Title } = Typography;
 
-// Sample data
+// Sample data for student management system
 const chartData = [
-  { name: "Jan", users: 400, posts: 240, views: 2400 },
-  { name: "Feb", users: 300, posts: 139, views: 2210 },
-  { name: "Mar", users: 200, posts: 980, views: 2290 },
-  { name: "Apr", users: 278, posts: 390, views: 2000 },
-  { name: "May", users: 189, posts: 480, views: 2181 },
-  { name: "Jun", users: 239, posts: 380, views: 2500 },
+  { name: "Jan", students: 450, courses: 24, enrollments: 380 },
+  { name: "Feb", students: 478, courses: 26, enrollments: 420 },
+  { name: "Mar", students: 502, courses: 28, enrollments: 465 },
+  { name: "Apr", students: 528, courses: 30, enrollments: 490 },
+  { name: "May", students: 545, courses: 32, enrollments: 515 },
+  { name: "Jun", students: 570, courses: 35, enrollments: 540 },
 ];
 
 const pieData = [
-  { name: "Desktop", value: 400, color: "#0088FE" },
-  { name: "Mobile", value: 300, color: "#00C49F" },
-  { name: "Tablet", value: 200, color: "#FFBB28" },
-  { name: "Other", value: 100, color: "#FF8042" },
+  { name: "Active Students", value: 485, color: "#52c41a" },
+  { name: "Inactive Students", value: 85, color: "#faad14" },
+  { name: "Graduated", value: 120, color: "#1890ff" },
+  { name: "Suspended", value: 15, color: "#ff4d4f" },
 ];
 
 const recentActivities = [
   {
     key: "1",
     user: "Nguyễn Văn A",
-    action: "Đăng bài viết mới",
+    action: "Đăng ký khóa học React Native",
     time: "2 phút trước",
     status: "success",
   },
   {
     key: "2",
     user: "Trần Thị B",
-    action: "Cập nhật hồ sơ",
+    action: "Hoàn thành bài tập JavaScript",
     time: "5 phút trước",
-    status: "info",
+    status: "success",
   },
   {
     key: "3",
     user: "Lê Văn C",
-    action: "Xóa bình luận",
+    action: "Cập nhật thông tin cá nhân",
     time: "10 phút trước",
-    status: "warning",
+    status: "info",
   },
   {
     key: "4",
     user: "Phạm Thị D",
-    action: "Đăng ký tài khoản",
+    action: "Tạo tài khoản mới",
     time: "15 phút trước",
     status: "success",
+  },
+  {
+    key: "5",
+    user: "Võ Minh E",
+    action: "Hủy đăng ký khóa học",
+    time: "20 phút trước",
+    status: "warning",
   },
 ];
 
@@ -128,56 +135,54 @@ const AdminDashboard: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Tổng Users"
-              value={1128}
+              title="Tổng người dùng"
+              value={705}
               prefix={<UserOutlined />}
               valueStyle={{ color: "#3f8600" }}
               suffix={<ArrowUpOutlined />}
             />
             <div className="mt-2 text-sm text-gray-500">
-              +12% so với tháng trước
+              +8% so với tháng trước
             </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Bài viết"
-              value={93}
+              title="Khóa học"
+              value={35}
               prefix={<FileTextOutlined />}
-              valueStyle={{ color: "#cf1322" }}
-              suffix={<ArrowDownOutlined />}
+              valueStyle={{ color: "#1890ff" }}
+              suffix={<ArrowUpOutlined />}
             />
-            <div className="mt-2 text-sm text-gray-500">
-              -3% so với tháng trước
-            </div>
+            <div className="mt-2 text-sm text-gray-500">+5 khóa học mới</div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Lượt xem"
-              value={112893}
+              title="Lượt đăng ký"
+              value={540}
               prefix={<EyeOutlined />}
               valueStyle={{ color: "#3f8600" }}
               suffix={<ArrowUpOutlined />}
             />
             <div className="mt-2 text-sm text-gray-500">
-              +25% so với tháng trước
+              +15% so với tháng trước
             </div>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Doanh thu"
-              value={11280000}
-              prefix="₫"
-              valueStyle={{ color: "#3f8600" }}
+              title="Lịch học"
+              value={128}
+              prefix={<FileTextOutlined />}
+              valueStyle={{ color: "#fa8c16" }}
               suffix={<ArrowUpOutlined />}
             />
             <div className="mt-2 text-sm text-gray-500">
-              +18% so với tháng trước
+              +12 lịch mới tuần này
             </div>
           </Card>
         </Col>

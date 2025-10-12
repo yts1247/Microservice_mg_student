@@ -1,4 +1,9 @@
 import { ApiService } from "./api";
+import {
+  User,
+  LoginResponse as RBACLoginResponse,
+  UserPermissionsResponse,
+} from "../types/rbac.types";
 
 export interface LoginRequest {
   username: string; // email hoặc username
@@ -124,4 +129,132 @@ export class AuthService {
       data
     );
   }
+
+  // RBAC Methods
+  static getCurrentUser(): User | null {
+    try {
+      const userData = localStorage.getItem("userData");
+      if (userData) {
+        return JSON.parse(userData) as User;
+      }
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+      localStorage.removeItem("userData");
+    }
+    return null;
+  }
+
+  static getToken(): string | null {
+    return localStorage.getItem("authToken");
+  }
+
+  static isAuthenticated(): boolean {
+    const token = this.getToken();
+    const user = this.getCurrentUser();
+    return !!(token && user);
+  }
+
+  static async getUserPermissions(userId?: string): Promise<string[]> {
+    try {
+      const endpoint = userId
+        ? `/auth/permissions/${userId}`
+        : "/auth/permissions";
+      const response = await ApiService.get<UserPermissionsResponse>(endpoint);
+
+      if (response.success) {
+        return response.permissions || [];
+      }
+    } catch (error) {
+      console.error("Failed to get user permissions:", error);
+    }
+    return [];
+  }
+
+  static async checkPermission(
+    resource: string,
+    action: string
+  ): Promise<boolean> {
+    try {
+      const response = await ApiService.post<{ allowed: boolean }>(
+        "/auth/check-permission",
+        {
+          resource,
+          action,
+        }
+      );
+      return response.allowed;
+    } catch (error) {
+      console.error("Permission check error:", error);
+      return false;
+    }
+  }
+
+  static async assignRole(userId: string, roleId: string): Promise<boolean> {
+    try {
+      const response = await ApiService.post<{ success: boolean }>(
+        "/auth/assign-role",
+        {
+          userId,
+          roleId,
+        }
+      );
+      return response.success;
+    } catch (error) {
+      console.error("Role assignment error:", error);
+      return false;
+    }
+  }
+
+  static async removeRole(userId: string, roleId: string): Promise<boolean> {
+    try {
+      const response = await ApiService.delete<{ success: boolean }>(
+        `/auth/remove-role/${userId}/${roleId}`
+      );
+      return response.success;
+    } catch (error) {
+      console.error("Role removal error:", error);
+      return false;
+    }
+  }
+
+  // Generic HTTP methods for admin operations
+  static async get<T = any>(endpoint: string): Promise<T> {
+    try {
+      return await ApiService.get<T>(endpoint);
+    } catch (error) {
+      console.error(`GET ${endpoint} error:`, error);
+      throw error;
+    }
+  }
+
+  static async post<T = any>(endpoint: string, data?: any): Promise<T> {
+    try {
+      return await ApiService.post<T>(endpoint, data);
+    } catch (error) {
+      console.error(`POST ${endpoint} error:`, error);
+      throw error;
+    }
+  }
+
+  static async put<T = any>(endpoint: string, data?: any): Promise<T> {
+    try {
+      return await ApiService.put<T>(endpoint, data);
+    } catch (error) {
+      console.error(`PUT ${endpoint} error:`, error);
+      throw error;
+    }
+  }
+
+  static async delete<T = any>(endpoint: string): Promise<T> {
+    try {
+      return await ApiService.delete<T>(endpoint);
+    } catch (error) {
+      console.error(`DELETE ${endpoint} error:`, error);
+      throw error;
+    }
+  }
 }
+
+
+// Export singleton instance
+export const authService = AuthService;

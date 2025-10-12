@@ -10,13 +10,19 @@ import swaggerUi from "swagger-ui-express";
 import { Server } from "http";
 
 import logger from "./config/logger";
+import {
+  logRequest,
+  authenticateToken,
+  requirePermission,
+} from "./middleware/rbac";
+import { PermissionAction, PermissionResource } from "./types/rbac.types";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(helmet());
-app.use(compression());
+app.use(compression() as any);
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "*",
@@ -38,6 +44,9 @@ app.use(limiter);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
+// Request logging middleware
+app.use(logRequest);
+
 // Swagger configuration
 const swaggerOptions = {
   definition: {
@@ -58,7 +67,7 @@ const swaggerOptions = {
 };
 
 const specs = swaggerJsdoc(swaggerOptions);
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(specs));
+app.use("/api/docs", swaggerUi.serve as any, swaggerUi.setup(specs) as any);
 
 // Health check
 app.get("/health", (req: Request, res: Response) => {

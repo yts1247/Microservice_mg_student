@@ -28,6 +28,9 @@ import type { MenuProps } from "antd";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useBreakpoint";
+import { useRBAC } from "../../contexts/RBACContext";
+import { navigationConfig } from "../../config/navigation";
+import RBACGuard from "../RBACGuard";
 
 const { Header, Sider, Content } = Layout;
 

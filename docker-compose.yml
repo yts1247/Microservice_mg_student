@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # MongoDB Database
   mongodb:
-    image: mongo:6.0
+    image: mongo:7-jammy
     container_name: student_management_db
     restart: unless-stopped
     ports:
@@ -16,6 +16,25 @@ services:
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     networks:
       - student_management_network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
 
   # Redis for caching and messaging
   redis:
@@ -24,15 +43,30 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     networks:
       - student_management_network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # User Service
   user-service:
-    build: ./user-service
+    build: 
+      context: ./user-service
+      dockerfile: Dockerfile
     container_name: user_service
     restart: unless-stopped
     ports:
@@ -46,21 +80,39 @@ services:
       - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=info
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - student_management_network
     volumes:
-      - ./user-service/logs:/usr/src/app/logs
+      - ./user-service/logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
-      timeout: 10s
+      timeout: 3s
+      start_period: 10s
       retries: 3
 
   # Course Service
   course-service:
-    build: ./course-service
+    build: 
+      context: ./course-service
+      dockerfile: Dockerfile
     container_name: course_service
     restart: unless-stopped
     ports:
@@ -72,21 +124,39 @@ services:
       - USER_SERVICE_URL=http://user-service:3001
       - LOG_LEVEL=info
     depends_on:
-      - mongodb
-      - user-service
+      mongodb:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
     networks:
       - student_management_network
     volumes:
-      - ./course-service/logs:/usr/src/app/logs
+      - ./course-service/logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3002/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
-      timeout: 10s
+      timeout: 3s
+      start_period: 10s
       retries: 3
 
   # Schedule Service
   schedule-service:
-    build: ./schedule-service
+    build: 
+      context: ./schedule-service
+      dockerfile: Dockerfile
     container_name: schedule_service
     restart: unless-stopped
     ports:
@@ -99,22 +169,41 @@ services:
       - COURSE_SERVICE_URL=http://course-service:3002
       - LOG_LEVEL=info
     depends_on:
-      - mongodb
-      - user-service
-      - course-service
+      mongodb:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      course-service:
+        condition: service_healthy
     networks:
       - student_management_network
     volumes:
-      - ./schedule-service/logs:/usr/src/app/logs
+      - ./schedule-service/logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3003/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
-      timeout: 10s
+      timeout: 3s
+      start_period: 10s
       retries: 3
 
   # Enrollment Service
   enrollment-service:
-    build: ./enrollment-service
+    build: 
+      context: ./enrollment-service
+      dockerfile: Dockerfile
     container_name: enrollment_service
     restart: unless-stopped
     ports:
@@ -128,23 +217,43 @@ services:
       - SCHEDULE_SERVICE_URL=http://schedule-service:3003
       - LOG_LEVEL=info
     depends_on:
-      - mongodb
-      - user-service
-      - course-service
-      - schedule-service
+      mongodb:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      course-service:
+        condition: service_healthy
+      schedule-service:
+        condition: service_healthy
     networks:
       - student_management_network
     volumes:
-      - ./enrollment-service/logs:/usr/src/app/logs
+      - ./enrollment-service/logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3004/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
-      timeout: 10s
+      timeout: 3s
+      start_period: 10s
       retries: 3
 
   # API Gateway
   api-gateway:
-    build: ./api-gateway
+    build: 
+      context: ./api-gateway
+      dockerfile: Dockerfile
     container_name: api_gateway
     restart: unless-stopped
     ports:
@@ -159,24 +268,84 @@ services:
       - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=info
     depends_on:
-      - user-service
-      - course-service
-      - schedule-service
-      - enrollment-service
-      - redis
+      user-service:
+        condition: service_healthy
+      course-service:
+        condition: service_healthy
+      schedule-service:
+        condition: service_healthy
+      enrollment-service:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - student_management_network
     volumes:
-      - ./api-gateway/logs:/usr/src/app/logs
+      - ./api-gateway/logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
-      timeout: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  # Admin Frontend
+  admin-frontend:
+    build: 
+      context: ./admin-frontend
+      dockerfile: Dockerfile
+    container_name: admin_frontend
+    restart: unless-stopped
+    ports:
+      - "3008:30009"
+    environment:
+      - NODE_ENV=production
+      - PORT=30009
+      - NEXT_PUBLIC_API_URL=http://api-gateway:3000
+      - NEXT_TELEMETRY_DISABLED=1
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - student_management_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:30009', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 3s
+      start_period: 15s
       retries: 3
 
   # Log Management System
   log-management:
-    build: ./log-management
+    build: 
+      context: ./log-management
+      dockerfile: Dockerfile
     container_name: log_management_system
     restart: unless-stopped
     ports:
@@ -191,12 +360,18 @@ services:
       - SCHEDULE_SERVICE_LOG_PATH=/app/logs/schedule-service
       - ENROLLMENT_SERVICE_LOG_PATH=/app/logs/enrollment-service
       - CORS_ORIGIN=*
+      - NEXT_TELEMETRY_DISABLED=1
     depends_on:
-      - api-gateway
-      - user-service
-      - course-service
-      - schedule-service
-      - enrollment-service
+      api-gateway:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      course-service:
+        condition: service_healthy
+      schedule-service:
+        condition: service_healthy
+      enrollment-service:
+        condition: service_healthy
     networks:
       - student_management_network
     volumes:
@@ -206,20 +381,64 @@ services:
       - ./schedule-service/logs:/app/logs/schedule-service:ro
       - ./enrollment-service/logs:/app/logs/enrollment-service:ro
       - log_management_db:/app/logs.db
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3007/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
       interval: 30s
-      timeout: 10s
+      timeout: 3s
+      start_period: 15s
       retries: 3
 
 networks:
   student_management_network:
     driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-student-mgmt
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
 volumes:
   mongodb_data:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/mongodb
   redis_data:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/redis
   log_management_db:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/log-management
+
+# Global configuration
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-healthcheck-defaults: &default-healthcheck
+  interval: 30s
+  timeout: 3s
+  start_period: 10s
+  retries: 3

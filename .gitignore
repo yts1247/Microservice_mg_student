@@ -112,17 +112,31 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# Docker
-.dockerignore
-Dockerfile
-docker-compose*.yml
+# Docker data volumes (keep configurations, ignore data)
+data/
+data/mongodb/
+data/redis/
+data/log-management/
 
 # PM2
 ecosystem.config.js
 
-# Database
+# Database files (runtime data)
 *.sqlite
 *.db
+
+# MongoDB data
+mongodb-data/
+mongo-data/
+
+# Redis data
+redis-data/
+dump.rdb
+
+# Log files and directories
+logs/
+*.log
+log-management/logs/
 
 # node_modules
 node_modules/

@@ -58,18 +58,20 @@ Hệ thống microservice quản lý học sinh, lịch học và khóa học đ
 
 ### Khởi chạy hệ thống
 
-#### Cài đặt dependencies
+### Cài đặt dependencies (yarn)
 ```bash
 # Clone repository
 git clone <repository-url>
 cd microservice_be
 
-# Cài đặt dependencies cho từng service
-cd user-service && npm install && cd ..
-cd course-service && npm install && cd ..
-cd schedule-service && npm install && cd ..
-cd enrollment-service && npm install && cd ..
-cd api-gateway && npm install && cd ..
+# Cài đặt dependencies cho từng service (dùng yarn)
+cd user-service && yarn && cd ..
+cd course-service && yarn && cd ..
+cd schedule-service && yarn && cd ..
+cd enrollment-service && yarn && cd ..
+cd api-gateway && yarn && cd ..
+cd log-management && yarn && cd ..
+cd admin-frontend && yarn && cd ..
 ```
 
 #### Cấu hình môi trường
@@ -82,38 +84,46 @@ cp enrollment-service/.env.sample enrollment-service/.env
 cp api-gateway/.env.sample api-gateway/.env
 ```
 
-#### Development mode (TypeScript)
+#### Development mode (yarn)
 ```bash
 # Chạy từng service riêng biệt trong development mode
-cd user-service && npm run dev
-cd course-service && npm run dev
-cd schedule-service && npm run dev
-cd enrollment-service && npm run dev
-cd api-gateway && npm run dev
+cd user-service && yarn dev
+cd course-service && yarn dev
+cd schedule-service && yarn dev
+cd enrollment-service && yarn dev
+cd api-gateway && yarn dev
+cd log-management && yarn dev
+cd admin-frontend && yarn dev
 ```
 
-#### Production build
+#### Production build (yarn)
 ```bash
-# Build TypeScript to JavaScript
-cd user-service && npm run build && npm start
-cd course-service && npm run build && npm start
-cd schedule-service && npm run build && npm start
-cd enrollment-service && npm run build && npm start
-cd api-gateway && npm run build && npm start
+# Build and start services
+cd user-service && yarn build && yarn start
+cd course-service && yarn build && yarn start
+cd schedule-service && yarn build && yarn start
+cd enrollment-service && yarn build && yarn start
+cd api-gateway && yarn build && yarn start
+cd log-management && yarn build && yarn start
+cd admin-frontend && yarn build && yarn start
 ```
 
-#### Type checking
+#### Type checking (yarn)
 ```bash
 # Kiểm tra TypeScript types
-cd user-service && npm run type-check
-cd course-service && npm run type-check
-cd schedule-service && npm run type-check
-cd enrollment-service && npm run type-check
-cd api-gateway && npm run type-check
+cd user-service && yarn type-check
+cd course-service && yarn type-check
+cd schedule-service && yarn type-check
+cd enrollment-service && yarn type-check
+cd api-gateway && yarn type-check
+cd log-management && yarn type-check
+cd admin-frontend && yarn type-check
 ```
 
 ### Endpoints chính
 - API Gateway: http://localhost:3000
+- Admin Frontend: http://localhost:3008 (local mapped port)
+- Log Management UI: http://localhost:3007
 - User Service: http://localhost:3001
 - Course Service: http://localhost:3002
 - Schedule Service: http://localhost:3003

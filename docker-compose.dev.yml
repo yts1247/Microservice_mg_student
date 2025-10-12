@@ -1,0 +1,107 @@
+version: '3.8'
+
+# Development overrides for faster development workflow
+services:
+  mongodb:
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+  redis:
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.25'
+
+  user-service:
+    build:
+      context: ./user-service
+      target: deps
+    volumes:
+      - ./user-service/src:/app/src:ro
+      - ./user-service/logs:/app/logs
+    command: ["yarn", "dev"]
+    environment:
+      - NODE_ENV=development
+
+  course-service:
+    build:
+      context: ./course-service
+      target: deps
+    volumes:
+      - ./course-service/src:/app/src:ro
+      - ./course-service/logs:/app/logs
+    command: ["yarn", "dev"]
+    environment:
+      - NODE_ENV=development
+
+  schedule-service:
+    build:
+      context: ./schedule-service
+      target: deps
+    volumes:
+      - ./schedule-service/src:/app/src:ro
+      - ./schedule-service/logs:/app/logs
+    command: ["yarn", "dev"]
+    environment:
+      - NODE_ENV=development
+
+  enrollment-service:
+    build:
+      context: ./enrollment-service
+      target: deps
+    volumes:
+      - ./enrollment-service/src:/app/src:ro
+      - ./enrollment-service/logs:/app/logs
+    command: ["yarn", "dev"]
+    environment:
+      - NODE_ENV=development
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      target: deps
+    volumes:
+      - ./api-gateway/src:/app/src:ro
+      - ./api-gateway/logs:/app/logs
+    command: ["yarn", "dev"]
+    environment:
+      - NODE_ENV=development
+
+  admin-frontend:
+    build:
+      context: ./admin-frontend
+      target: deps
+    volumes:
+      - ./admin-frontend/src:/app/src:ro
+      - ./admin-frontend/public:/app/public:ro
+    command: ["yarn", "dev"]
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+
+  log-management:
+    build:
+      context: ./log-management
+      target: deps
+    volumes:
+      - ./log-management/src:/app/src:ro
+      - ./log-management/public:/app/public:ro
+      - ./log-management/logs:/app/logs
+    command: ["yarn", "dev"]
+    environment:
+      - NODE_ENV=development
+
+volumes:
+  mongodb_data:
+  redis_data:

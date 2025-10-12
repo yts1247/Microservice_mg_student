@@ -100,18 +100,14 @@ services:
     deploy:
       resources:
         limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
           memory: 512M
           cpus: '0.75'
-        reservations:
-          memory: 256M
-          cpus: '0.5'
-
-  log-management:
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.75'
-        reservations:
-          memory: 256M
-          cpus: '0.5'
+      # Single instance for admin frontend as it now includes log management
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: stop-first

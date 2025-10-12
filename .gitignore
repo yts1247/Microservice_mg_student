@@ -116,7 +116,6 @@ Thumbs.db
 data/
 data/mongodb/
 data/redis/
-data/log-management/
 
 # PM2
 ecosystem.config.js
@@ -136,7 +135,6 @@ dump.rdb
 # Log files and directories
 logs/
 *.log
-log-management/logs/
 
 # node_modules
 node_modules/

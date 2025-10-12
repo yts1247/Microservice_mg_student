@@ -85,22 +85,19 @@ services:
     volumes:
       - ./admin-frontend/src:/app/src:ro
       - ./admin-frontend/public:/app/public:ro
+      # Log access for integrated log management
+      - ./api-gateway/logs:/app/logs/api-gateway:ro
+      - ./user-service/logs:/app/logs/user-service:ro
+      - ./course-service/logs:/app/logs/course-service:ro
+      - ./schedule-service/logs:/app/logs/schedule-service:ro
+      - ./enrollment-service/logs:/app/logs/enrollment-service:ro
     command: ["yarn", "dev"]
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:3000
-
-  log-management:
-    build:
-      context: ./log-management
-      target: deps
-    volumes:
-      - ./log-management/src:/app/src:ro
-      - ./log-management/public:/app/public:ro
-      - ./log-management/logs:/app/logs
-    command: ["yarn", "dev"]
-    environment:
-      - NODE_ENV=development
+      - DATABASE_URL=/app/logs.db
+      - LOG_DIRECTORY=/app/logs
+      - JWT_SECRET=mySecretKey123456789012345678901234567890
 
 volumes:
   mongodb_data:

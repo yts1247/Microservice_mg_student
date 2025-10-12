@@ -70,7 +70,6 @@ cd course-service && yarn && cd ..
 cd schedule-service && yarn && cd ..
 cd enrollment-service && yarn && cd ..
 cd api-gateway && yarn && cd ..
-cd log-management && yarn && cd ..
 cd admin-frontend && yarn && cd ..
 ```
 
@@ -92,7 +91,6 @@ cd course-service && yarn dev
 cd schedule-service && yarn dev
 cd enrollment-service && yarn dev
 cd api-gateway && yarn dev
-cd log-management && yarn dev
 cd admin-frontend && yarn dev
 ```
 
@@ -104,7 +102,6 @@ cd course-service && yarn build && yarn start
 cd schedule-service && yarn build && yarn start
 cd enrollment-service && yarn build && yarn start
 cd api-gateway && yarn build && yarn start
-cd log-management && yarn build && yarn start
 cd admin-frontend && yarn build && yarn start
 ```
 
@@ -116,14 +113,13 @@ cd course-service && yarn type-check
 cd schedule-service && yarn type-check
 cd enrollment-service && yarn type-check
 cd api-gateway && yarn type-check
-cd log-management && yarn type-check
 cd admin-frontend && yarn type-check
 ```
 
 ### Endpoints chính
 - API Gateway: http://localhost:3000
 - Admin Frontend: http://localhost:3008 (local mapped port)
-- Log Management UI: http://localhost:3007
+ - Admin Frontend: http://localhost:3008 (local mapped port)
 - User Service: http://localhost:3001
 - Course Service: http://localhost:3002
 - Schedule Service: http://localhost:3003

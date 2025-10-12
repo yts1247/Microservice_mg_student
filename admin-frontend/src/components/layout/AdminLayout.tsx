@@ -120,6 +120,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       onClick: () => router.push("/admin/health"),
     },
     {
+      key: "/admin/logs",
+      icon: <FileTextOutlined />,
+      label: "Log Management",
+      onClick: () => router.push("/admin/logs"),
+    },
+    {
       key: "/admin/settings",
       icon: <SettingOutlined />,
       label: "Cài đặt",

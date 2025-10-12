@@ -4,6 +4,7 @@ export { AuthService } from "./authService";
 export { UserService } from "./userService";
 export { CourseService } from "./courseService";
 export { DashboardService } from "./dashboardService";
+export { LogService } from "./logService";
 
 // Export types
 export type {
@@ -41,3 +42,15 @@ export type {
   DeviceStats,
   DashboardData,
 } from "./dashboardService";
+
+export type {
+  LogEntry,
+  LogStats,
+  ServiceStats,
+  LogsListResponse,
+  LogStatsResponse,
+  ServiceStatsResponse,
+  LogsQueryParams,
+  LogDashboardData,
+  LogDashboardResponse,
+} from "./logService";

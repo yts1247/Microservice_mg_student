@@ -1,3 +1,4 @@
+// Import thư viện Redis và RabbitMQ
 import Redis from "ioredis";
 const amqp = require("amqplib/callback_api");
 
@@ -18,13 +19,13 @@ export interface MessageBrokerConfig {
   rabbitmq: {
     url: string;
     queues: {
-      logs: string;
-      audit: string;
-      notifications: string;
+      logs: string; // Hàng đợi log
+      audit: string; // Hàng đợi audit
+      notifications: string; // Hàng đợi thông báo
     };
     exchanges: {
-      logs: string;
-      system: string;
+      logs: string; // Exchange cho log
+      system: string; // Exchange cho hệ thống
     };
   };
 }
@@ -33,11 +34,11 @@ export interface MessageBrokerConfig {
  * Log Message Interface
  */
 export interface LogMessage {
-  id?: string;
-  service: string;
-  level: "error" | "warn" | "info" | "debug";
-  message: string;
-  timestamp: string;
+  id?: string; // ID log
+  service: string; // Tên service sinh ra log
+  level: "error" | "warn" | "info" | "debug"; // Mức độ log
+  message: string; // Nội dung log
+  timestamp: string; // Thời gian log
   metadata?: {
     userId?: string;
     requestId?: string;
@@ -63,15 +64,16 @@ export interface LogMessage {
 }
 
 /**
- * Message Broker Service
- * Handles async logging and messaging between microservices
+ * Service trung gian xử lý log và message giữa các microservice
+ * - Gửi log bất đồng bộ qua RabbitMQ
+ * - Lưu cache log, thống kê, truy xuất nhanh qua Redis
  */
 export class MessageBrokerService {
-  private redis: Redis;
-  private rabbitmqConnection?: any;
-  private rabbitmqChannel?: any;
-  private config: MessageBrokerConfig;
-  private isConnected: boolean = false;
+  private redis: Redis; // Kết nối Redis
+  private rabbitmqConnection?: any; // Kết nối RabbitMQ
+  private rabbitmqChannel?: any; // Channel RabbitMQ
+  private config: MessageBrokerConfig; // Cấu hình
+  private isConnected: boolean = false; // Trạng thái kết nối
 
   constructor(config: MessageBrokerConfig) {
     this.config = config;
@@ -86,11 +88,11 @@ export class MessageBrokerService {
       lazyConnect: true,
     });
 
-    this.setupRedisEventHandlers();
+    this.setupRedisEventHandlers(); // Đăng ký event cho Redis
   }
 
   /**
-   * Initialize connections to message brokers
+   * Khởi tạo kết nối tới Redis và RabbitMQ
    */
   async initialize(): Promise<void> {
     try {
@@ -125,6 +127,7 @@ export class MessageBrokerService {
         { durable: true }
       );
 
+      // Tạo exchange cho hệ thống (direct)
       await this.rabbitmqChannel.assertExchange(
         this.config.rabbitmq.exchanges.system,
         "direct",
@@ -146,7 +149,7 @@ export class MessageBrokerService {
         { durable: true }
       );
 
-      // Bind queues to exchanges
+      // Bind queue với exchange
       await this.rabbitmqChannel.bindQueue(
         this.config.rabbitmq.queues.logs,
         this.config.rabbitmq.exchanges.logs,
@@ -171,7 +174,7 @@ export class MessageBrokerService {
   }
 
   /**
-   * Setup Redis event handlers
+   * Đăng ký các event cho Redis (kết nối, lỗi, đóng)
    */
   private setupRedisEventHandlers(): void {
     this.redis.on("connect", () => {
@@ -188,7 +191,8 @@ export class MessageBrokerService {
   }
 
   /**
-   * Publish log message to RabbitMQ for async processing
+   * Gửi log lên RabbitMQ để xử lý bất đồng bộ
+   * Đồng thời lưu cache log vào Redis để truy xuất nhanh
    */
   async publishLog(logMessage: LogMessage): Promise<void> {
     if (!this.isConnected || !this.rabbitmqChannel) {
@@ -204,9 +208,11 @@ export class MessageBrokerService {
     }
 
     try {
+      // Tạo routing key cho log
       const routingKey = `logs.${logMessage.service}.${logMessage.level}`;
       const messageBuffer = Buffer.from(JSON.stringify(logMessage));
 
+      // Gửi log lên exchange logs
       await this.rabbitmqChannel.publish(
         this.config.rabbitmq.exchanges.logs,
         routingKey,
@@ -222,11 +228,11 @@ export class MessageBrokerService {
         }
       );
 
-      // Also cache in Redis for quick access
+      // Lưu cache log vào Redis
       await this.cacheLogInRedis(logMessage);
     } catch (error) {
       console.error("Failed to publish log message:", error);
-      // Fallback to console logging
+      // Fallback: log ra console nếu lỗi
       console.log(
         `[${logMessage.service}] ${logMessage.level.toUpperCase()}: ${
           logMessage.message
@@ -236,30 +242,30 @@ export class MessageBrokerService {
   }
 
   /**
-   * Cache log in Redis for quick access and real-time features
+   * Lưu log vào Redis để truy xuất nhanh, phục vụ dashboard, thống kê
    */
   private async cacheLogInRedis(logMessage: LogMessage): Promise<void> {
     try {
       const pipeline = this.redis.pipeline();
 
-      // Store in service-specific list (for recent logs)
+      // Lưu log theo service (danh sách log gần nhất của từng service)
       const serviceKey = `logs:service:${logMessage.service}`;
       pipeline.lpush(serviceKey, JSON.stringify(logMessage));
-      pipeline.ltrim(serviceKey, 0, 999); // Keep only last 1000 logs
-      pipeline.expire(serviceKey, 3600 * 24); // Expire after 24 hours
+      pipeline.ltrim(serviceKey, 0, 999); // Giữ tối đa 1000 log gần nhất
+      pipeline.expire(serviceKey, 3600 * 24); // Hết hạn sau 24h
 
-      // Store in level-specific list
+      // Lưu log theo level (error, warn, info, debug)
       const levelKey = `logs:level:${logMessage.level}`;
       pipeline.lpush(levelKey, JSON.stringify(logMessage));
       pipeline.ltrim(levelKey, 0, 999);
       pipeline.expire(levelKey, 3600 * 24);
 
-      // Store in time-based sorted set for time-range queries
+      // Lưu log theo thời gian (sorted set, phục vụ truy vấn theo khoảng thời gian)
       const timeKey = `logs:timeline`;
       const timestamp = new Date(logMessage.timestamp).getTime();
       pipeline.zadd(timeKey, timestamp, JSON.stringify(logMessage));
-      pipeline.zremrangebyrank(timeKey, 0, -10001); // Keep only last 10000 logs
-      pipeline.expire(timeKey, 3600 * 24 * 7); // Expire after 7 days
+      pipeline.zremrangebyrank(timeKey, 0, -10001); // Giữ tối đa 10000 log
+      pipeline.expire(timeKey, 3600 * 24 * 7); // Hết hạn sau 7 ngày
 
       // Update statistics
       await this.updateLogStats(logMessage);
@@ -271,7 +277,7 @@ export class MessageBrokerService {
   }
 
   /**
-   * Update real-time log statistics in Redis
+   * Cập nhật thống kê log (theo ngày, giờ, service) trong Redis
    */
   private async updateLogStats(logMessage: LogMessage): Promise<void> {
     try {
@@ -280,7 +286,7 @@ export class MessageBrokerService {
 
       const pipeline = this.redis.pipeline();
 
-      // Daily stats
+      // Thống kê theo ngày
       pipeline.hincrby(`stats:daily:${today}`, "total", 1);
       pipeline.hincrby(`stats:daily:${today}`, logMessage.level, 1);
       pipeline.hincrby(
@@ -290,12 +296,12 @@ export class MessageBrokerService {
       );
       pipeline.expire(`stats:daily:${today}`, 3600 * 24 * 30); // Keep for 30 days
 
-      // Hourly stats
+      // Thống kê theo giờ
       pipeline.hincrby(`stats:hourly:${today}:${hour}`, "total", 1);
       pipeline.hincrby(`stats:hourly:${today}:${hour}`, logMessage.level, 1);
-      pipeline.expire(`stats:hourly:${today}:${hour}`, 3600 * 24 * 7); // Keep for 7 days
+      pipeline.expire(`stats:hourly:${today}:${hour}`, 3600 * 24 * 7); // Lưu 7 ngày
 
-      // Service stats
+      // Thống kê theo service
       pipeline.hincrby(`stats:service:${logMessage.service}`, "total", 1);
       pipeline.hincrby(
         `stats:service:${logMessage.service}`,
@@ -311,7 +317,8 @@ export class MessageBrokerService {
   }
 
   /**
-   * Setup log message consumer
+   * Khởi động consumer nhận log từ RabbitMQ
+   * Khi có log mới, gọi callback để xử lý
    */
   async startLogConsumer(
     callback: (logMessage: LogMessage) => Promise<void>
@@ -331,7 +338,7 @@ export class MessageBrokerService {
           this.rabbitmqChannel!.ack(message);
         } catch (error) {
           console.error("Failed to process log message:", error);
-          // Reject and requeue the message
+          // Nếu lỗi, requeue lại message
           this.rabbitmqChannel!.nack(message, false, true);
         }
       },
@@ -344,7 +351,7 @@ export class MessageBrokerService {
   }
 
   /**
-   * Get recent logs from Redis cache
+   * Lấy danh sách log gần nhất từ Redis (phục vụ dashboard, truy xuất nhanh)
    */
   async getRecentLogs(
     options: {
@@ -367,10 +374,10 @@ export class MessageBrokerService {
 
       let logs: string[];
       if (key === "logs:timeline") {
-        // Get from sorted set (most recent first)
+        // Lấy từ sorted set (mới nhất trước)
         logs = await this.redis.zrevrange(key, 0, limit - 1);
       } else {
-        // Get from list (most recent first)
+        // Lấy từ list (mới nhất trước)
         logs = await this.redis.lrange(key, 0, limit - 1);
       }
 
@@ -382,7 +389,8 @@ export class MessageBrokerService {
   }
 
   /**
-   * Get log statistics from Redis
+   * statistics: thống kê
+   * Lấy thống kê log từ Redis (phục vụ dashboard, báo cáo)
    */
   async getLogStats(date?: string): Promise<any> {
     try {
@@ -411,7 +419,7 @@ export class MessageBrokerService {
   }
 
   /**
-   * Publish system notification
+   * Gửi thông báo hệ thống lên RabbitMQ
    */
   async publishNotification(notification: {
     type: string;
@@ -441,7 +449,7 @@ export class MessageBrokerService {
   }
 
   /**
-   * Publish audit log
+   * Gửi log audit lên RabbitMQ
    */
   async publishAuditLog(auditLog: {
     userId: string;
@@ -473,7 +481,7 @@ export class MessageBrokerService {
   }
 
   /**
-   * Generate unique message ID
+   * Tạo ID duy nhất cho message/log
    */
   private generateMessageId(): string {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -500,7 +508,7 @@ export class MessageBrokerService {
   }
 
   /**
-   * Health check
+   * Kiểm tra sức khỏe kết nối Redis và RabbitMQ
    */
   async healthCheck(): Promise<{ redis: boolean; rabbitmq: boolean }> {
     const health = {
@@ -530,7 +538,7 @@ export class MessageBrokerService {
   }
 }
 
-// Default configuration
+// Cấu hình mặc định cho Message Broker (Redis & RabbitMQ)
 export const defaultMessageBrokerConfig: MessageBrokerConfig = {
   redis: {
     host: process.env.REDIS_HOST || "localhost",
@@ -552,9 +560,13 @@ export const defaultMessageBrokerConfig: MessageBrokerConfig = {
   },
 };
 
-// Singleton instance
+// Singleton instance cho MessageBrokerService
 let messageBrokerService: MessageBrokerService | null = null;
 
+/**
+ * Hàm lấy instance duy nhất của MessageBrokerService
+ * Dùng để đảm bảo chỉ có một kết nối tới broker trong toàn bộ app
+ */
 export const getMessageBrokerService = (
   config?: MessageBrokerConfig
 ): MessageBrokerService => {

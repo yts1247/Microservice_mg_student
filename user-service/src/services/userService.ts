@@ -1,3 +1,4 @@
+// (removed duplicate misplaced deleteUserById)
 import User from "../models/User";
 import { generateToken } from "../middleware/auth";
 import logger from "../config/logger";
@@ -22,6 +23,19 @@ interface PaginationOptions {
 }
 
 class UserService {
+  async deleteUserById(userId: string): Promise<IUserDocument> {
+    try {
+      const user = await User.findByIdAndDelete(userId);
+      if (!user) {
+        throw new Error("User not found");
+      }
+      logger.info(`User deleted: ${user.email}`);
+      return user;
+    } catch (error: any) {
+      logger.error("Delete user error:", error);
+      throw error;
+    }
+  }
   async registerUser(
     userData: IRegisterRequest
   ): Promise<{ user: Partial<IUser>; token: string }> {
@@ -293,26 +307,44 @@ class UserService {
 
   async getUserStats(): Promise<{
     totalUsers: number;
+    totalStudents: number;
+    totalTeachers: number;
+    totalAdmins: number;
     activeUsers: number;
-    roleDistribution: Array<{ _id: string; count: number }>;
+    inactiveUsers: number;
+    newUsersThisMonth: number;
   }> {
     try {
-      const stats = await User.aggregate([
-        {
-          $group: {
-            _id: "$role",
-            count: { $sum: 1 },
-          },
-        },
+      const [
+        totalUsers,
+        totalStudents,
+        totalTeachers,
+        totalAdmins,
+        activeUsers,
+        newUsersThisMonth,
+      ] = await Promise.all([
+        User.countDocuments(),
+        User.countDocuments({ role: "student", isActive: true }),
+        User.countDocuments({ role: "teacher", isActive: true }),
+        User.countDocuments({ role: "admin", isActive: true }),
+        User.countDocuments({ isActive: true }),
+        (() => {
+          const now = new Date();
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+          return User.countDocuments({ createdAt: { $gte: startOfMonth } });
+        })(),
       ]);
 
-      const totalUsers = await User.countDocuments();
-      const activeUsers = await User.countDocuments({ isActive: true });
+      const inactiveUsers = totalUsers - activeUsers;
 
       return {
         totalUsers,
+        totalStudents,
+        totalTeachers,
+        totalAdmins,
         activeUsers,
-        roleDistribution: stats,
+        inactiveUsers,
+        newUsersThisMonth,
       };
     } catch (error: any) {
       logger.error("Get user stats error:", error);

@@ -56,9 +56,13 @@ export const validateRegistration = [
     .withMessage("Last name cannot exceed 50 characters"),
 
   body("profile.phone")
-    .optional()
-    .matches(/^[\+]?[1-9][\d]{0,15}$/)
-    .withMessage("Please provide a valid phone number"),
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === undefined || value === null || value === "") return true;
+      // Accept Vietnamese phone numbers: 10 digits, start with 0 or +84 and valid prefix (3,5,7,8,9)
+      return /^0[35789]\d{8}$/.test(value) || /^\+84[35789]\d{8}$/.test(value);
+    })
+    .withMessage("Please enter a valid phone number"),
 
   handleValidationErrors,
 ];
@@ -84,8 +88,11 @@ export const validateUpdateProfile = [
 
   body("profile.phone")
     .optional()
-    .matches(/^[\+]?[1-9][\d]{0,15}$/)
-    .withMessage("Please provide a valid phone number"),
+    .custom((value) => {
+      if (value === undefined || value === null || value === "") return true;
+      return /^0[35789]\d{8}$/.test(value) || /^\+84[35789]\d{8}$/.test(value);
+    })
+    .withMessage("Please enter a valid phone number"),
 
   body("profile.dateOfBirth")
     .optional()

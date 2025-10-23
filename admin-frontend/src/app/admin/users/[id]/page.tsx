@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Typography,
   Card,
@@ -25,13 +25,32 @@ const { Title } = Typography;
 export default function UserDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const userId = params?.id as string;
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
-  const { data: userData, isLoading, error, refetch } = useUser(userId);
+  // Wait for params to be ready before setting userId
+  useEffect(() => {
+    if (params?.id) {
+      setUserId(params.id as string);
+      setIsReady(true);
+    }
+  }, [params]);
+
+  // Only call hook when userId is ready and valid
+  const {
+    data: userData,
+    isLoading,
+    error,
+    refetch,
+  } = useUser(isReady && userId ? userId : "");
   const activateMutation = useActivateUser();
   const deactivateMutation = useDeactivateUser();
 
   const handleActivate = async () => {
+    if (!userId) {
+      message.error("User ID is not available");
+      return;
+    }
     try {
       await activateMutation.mutateAsync(userId);
       message.success("Kích hoạt người dùng thành công!");
@@ -45,6 +64,10 @@ export default function UserDetailPage() {
   };
 
   const handleDeactivate = async () => {
+    if (!userId) {
+      message.error("User ID is not available");
+      return;
+    }
     try {
       await deactivateMutation.mutateAsync(userId);
       message.success("Vô hiệu hóa người dùng thành công!");
@@ -57,7 +80,7 @@ export default function UserDetailPage() {
     }
   };
 
-  if (isLoading) {
+  if (!isReady || isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spin size="large" />
@@ -78,7 +101,19 @@ export default function UserDetailPage() {
     );
   }
 
-  const user = userData.data;
+  const user = userData.data.user;
+  if (!user) {
+    return (
+      <div className="p-8">
+        <Card>
+          <Title level={4} type="danger">
+            Không tìm thấy người dùng
+          </Title>
+          <Button onClick={() => router.back()}>Quay lại</Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">

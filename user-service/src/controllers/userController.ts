@@ -10,6 +10,61 @@ import {
 } from "../types/user.types";
 
 class UserController {
+  // Delete any user by ID (admin only)
+  async deleteUserById(
+    req: Request<{ id: string }>,
+    res: Response
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id || id === "undefined" || id.trim() === "") {
+        res.status(400).json({
+          success: false,
+          message: "Invalid user ID provided",
+        });
+        return;
+      }
+      await userService.deleteUserById(id);
+      res.status(200).json({
+        success: true,
+        message: "User deleted successfully",
+      });
+    } catch (error: any) {
+      logger.error("Delete user by ID controller error:", error);
+      res.status(400).json({
+        success: false,
+        message: error.message || "Failed to delete user",
+      });
+    }
+  }
+  // Update any user by ID (admin only)
+  async updateUserById(
+    req: Request<{ id: string }, {}, Partial<IUser>>,
+    res: Response
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      if (!id || id === "undefined" || id.trim() === "") {
+        res.status(400).json({
+          success: false,
+          message: "Invalid user ID provided",
+        });
+        return;
+      }
+      const user = await userService.updateUserProfile(id, req.body);
+      res.status(200).json({
+        success: true,
+        message: "User updated successfully",
+        data: { user },
+      });
+    } catch (error: any) {
+      logger.error("Update user by ID controller error:", error);
+      res.status(400).json({
+        success: false,
+        message: error.message || "Failed to update user",
+      });
+    }
+  }
   async register(
     req: Request<{}, ApiResponse, IRegisterRequest>,
     res: Response<ApiResponse>
@@ -182,7 +237,18 @@ class UserController {
     res: Response<ApiResponse>
   ): Promise<void> {
     try {
-      const user = await userService.getUserById(req.params.id);
+      const { id } = req.params;
+
+      // Validate ID is not empty or "undefined" string
+      if (!id || id === "undefined" || id.trim() === "") {
+        res.status(400).json({
+          success: false,
+          message: "Invalid user ID provided",
+        });
+        return;
+      }
+
+      const user = await userService.getUserById(id);
 
       res.status(200).json({
         success: true,
@@ -203,7 +269,17 @@ class UserController {
     res: Response<ApiResponse>
   ): Promise<void> {
     try {
-      const user = await userService.deactivateUser(req.params.id);
+      const { id } = req.params;
+
+      if (!id || id === "undefined" || id.trim() === "") {
+        res.status(400).json({
+          success: false,
+          message: "Invalid user ID provided",
+        });
+        return;
+      }
+
+      const user = await userService.deactivateUser(id);
 
       res.status(200).json({
         success: true,
@@ -224,7 +300,17 @@ class UserController {
     res: Response<ApiResponse>
   ): Promise<void> {
     try {
-      const user = await userService.activateUser(req.params.id);
+      const { id } = req.params;
+
+      if (!id || id === "undefined" || id.trim() === "") {
+        res.status(400).json({
+          success: false,
+          message: "Invalid user ID provided",
+        });
+        return;
+      }
+
+      const user = await userService.activateUser(id);
 
       res.status(200).json({
         success: true,

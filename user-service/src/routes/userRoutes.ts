@@ -12,6 +12,66 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/users/{id}:
+ *   delete:
+ *     summary: Delete user by ID (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       400:
+ *         description: Delete failed
+ */
+router.delete(
+  "/:id",
+  authenticateToken,
+  authorizeRoles("admin"),
+  userController.deleteUserById
+);
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   put:
+ *     summary: Update user by ID (Admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Update failed
+ */
+router.put(
+  "/:id",
+  authenticateToken,
+  authorizeRoles("admin"),
+  userController.updateUserById
+);
+
+/**
+ * @swagger
  * components:
  *   schemas:
  *     User:

@@ -1,3 +1,14 @@
+// Delete user mutation
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => UserService.deleteUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["userStats"] });
+    },
+  });
+};
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserService, User, UsersQueryParams } from "@/services/userService";
 
@@ -10,11 +21,12 @@ export const useUsers = (params?: UsersQueryParams) => {
 };
 
 // Get user by ID query
-export const useUser = (id: string) => {
+export const useUser = (id: string | "") => {
   return useQuery({
     queryKey: ["user", id],
     queryFn: () => UserService.getUserById(id),
-    enabled: !!id,
+    enabled: id.length > 0, // Only enable query when id is not empty
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 };
 

@@ -2,6 +2,7 @@ import { ApiService } from "./api";
 
 export interface User {
   id: string;
+  _id?: string;
   username: string;
   email: string;
   role: "student" | "teacher" | "admin";
@@ -147,8 +148,10 @@ export class UserService {
 
   static async getUserById(
     id: string
-  ): Promise<{ success: boolean; data: User }> {
-    return ApiService.get<{ success: boolean; data: User }>(`/users/${id}`);
+  ): Promise<{ success: boolean; data: { user: User } }> {
+    return ApiService.get<{ success: boolean; data: { user: User } }>(
+      `/users/${id}`
+    );
   }
 
   static async createUser(
@@ -167,6 +170,14 @@ export class UserService {
     return ApiService.put<{ success: boolean; data: User; message: string }>(
       `/users/${id}`,
       userData
+    );
+  }
+
+  static async deleteUser(
+    id: string
+  ): Promise<{ success: boolean; message: string }> {
+    return ApiService.delete<{ success: boolean; message: string }>(
+      `/users/${id}`
     );
   }
 

@@ -79,7 +79,7 @@ class CourseController {
       res.status(200).json({
         success: true,
         message: "Course retrieved successfully",
-        data: { course },
+        data: course,
       });
     } catch (error: any) {
       logger.error("Get course controller error:", error);

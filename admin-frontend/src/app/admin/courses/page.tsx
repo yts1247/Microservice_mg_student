@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useDebounce } from "use-debounce";
 import {
   Table,
   Button,
@@ -47,6 +48,7 @@ const { TextArea } = Input;
 
 export default function CoursesPage() {
   const [searchText, setSearchText] = useState("");
+  const [debouncedSearchText] = useDebounce(searchText, 400);
   const [departmentFilter, setDepartmentFilter] = useState<
     string | undefined
   >();
@@ -67,18 +69,29 @@ export default function CoursesPage() {
   } = useCourses({
     page,
     limit: pageSize,
-    search: searchText,
+    search: debouncedSearchText,
     department: departmentFilter,
     level: levelFilter,
   });
 
   // Fetch course stats
-  const { data: statsData } = useCourseStats();
+  const { data: statsData, refetch: refetchStats } = useCourseStats();
 
   // Mutations
   const createMutation = useCreateCourse();
   const updateMutation = useUpdateCourse();
   const deleteMutation = useDeleteCourse();
+
+  function isAxiosError(
+    error: unknown
+  ): error is { response?: { data?: { message?: string } } } {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as Record<string, unknown>).response === "object"
+    );
+  }
 
   const handleCreate = () => {
     setEditingCourse(null);
@@ -97,15 +110,23 @@ export default function CoursesPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!id) {
+      message.error({ content: "Thiếu ID khóa học", type: "error" });
+      return;
+    }
     try {
       await deleteMutation.mutateAsync(id);
-      message.success("Xóa khóa học thành công!");
+      message.success({ content: "Xóa khóa học thành công!", type: "success" });
       refetch();
+      refetchStats();
     } catch (error: unknown) {
-      const errorMessage =
-        (error as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message || "Xóa thất bại!";
-      message.error(errorMessage);
+      let errorMessage = "Xóa thất bại!";
+      if (isAxiosError(error) && error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error && error.message) {
+        errorMessage = error.message;
+      }
+      message.error({ content: errorMessage, type: "error" });
     }
   };
 
@@ -132,23 +153,33 @@ export default function CoursesPage() {
 
       if (editingCourse) {
         await updateMutation.mutateAsync({
-          id: editingCourse.id,
+          id: editingCourse.id || editingCourse._id || "",
           data: courseData,
         });
-        message.success("Cập nhật khóa học thành công!");
+        message.success({
+          content: "Cập nhật khóa học thành công!",
+          type: "success",
+        });
       } else {
         await createMutation.mutateAsync(courseData);
-        message.success("Tạo khóa học mới thành công!");
+        message.success({
+          content: "Tạo khóa học mới thành công!",
+          type: "success",
+        });
       }
 
       setIsModalVisible(false);
       form.resetFields();
       refetch();
+      refetchStats();
     } catch (error: unknown) {
-      const errorMessage =
-        (error as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message || "Lưu thất bại!";
-      message.error(errorMessage);
+      let errorMessage = "Lưu thất bại!";
+      if (isAxiosError(error) && error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error && error.message) {
+        errorMessage = error.message;
+      }
+      message.error({ content: errorMessage, type: "error" });
     }
   };
 
@@ -242,7 +273,7 @@ export default function CoursesPage() {
       key: "capacity",
       render: (_, record: Course) => (
         <span>
-          {record.capacity.enrolled || 0}/{record.capacity.max}
+          {record.capacity?.enrolled ?? 0}/{record.capacity?.max ?? 0}
         </span>
       ),
     },
@@ -276,7 +307,9 @@ export default function CoursesPage() {
           <Popconfirm
             title="Xóa khóa học"
             description="Bạn có chắc chắn muốn xóa khóa học này?"
-            onConfirm={() => handleDelete(record.id ?? record._id)}
+            onConfirm={() =>
+              handleDelete((record.id || record._id || "") as string)
+            }
             okText="Xóa"
             cancelText="Hủy"
           >

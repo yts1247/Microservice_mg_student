@@ -21,45 +21,116 @@ import {
 } from "@ant-design/icons";
 import { useRouter, useParams } from "next/navigation";
 import { useCourse, useDeleteCourse } from "@/hooks/useCourses";
+import { formatDateTime } from "@/lib/dateFormatter";
 
 const { Title } = Typography;
 
 export default function CourseDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const courseId = params?.id as string;
+  const courseId = Array.isArray(params?.id)
+    ? params.id[0]
+    : (params?.id as string);
 
-  const { data: courseData, isLoading, error } = useCourse(courseId);
+  console.log("params:", params);
+  console.log("courseId:", courseId);
+
+  const {
+    data: courseData,
+    isLoading,
+    error,
+    isFetching,
+  } = useCourse(courseId);
   const deleteMutation = useDeleteCourse();
+
+  console.log("courseData:", courseData);
+  console.log("error:", error);
+  console.log("isLoading:", isLoading);
+  console.log("isFetching:", isFetching);
+
+  function isAxiosError(
+    error: unknown
+  ): error is { response?: { data?: { message?: string } } } {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as Record<string, unknown>).response === "object"
+    );
+  }
 
   const handleDelete = async () => {
     try {
       await deleteMutation.mutateAsync(courseId);
-      message.success("Xóa khóa học thành công!");
+      message.success({ content: "Xóa khóa học thành công!", type: "success" });
       router.push("/admin/courses");
     } catch (err: unknown) {
-      const errorMessage =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || "Xóa thất bại!";
-      message.error(errorMessage);
+      let errorMessage = "Xóa thất bại!";
+      if (isAxiosError(err) && err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err instanceof Error && err.message) {
+        errorMessage = err.message;
+      }
+      message.error({ content: errorMessage, type: "error" });
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <Spin size="large" />
+        <Spin size="large" tip="Đang tải thông tin khóa học..." />
       </div>
     );
   }
 
-  if (error || !courseData?.data) {
+  if (!courseId) {
     return (
       <div className="p-8">
         <Card>
           <Title level={4} type="danger">
-            Không thể tải thông tin khóa học
+            Lỗi: Không tìm thấy ID khóa học
           </Title>
+          <p>courseId is empty or undefined</p>
+          <Button onClick={() => router.back()}>Quay lại</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <Card>
+          <Title level={4} type="danger">
+            Lỗi khi tải khóa học
+          </Title>
+          <p className="text-red-600 mb-4">
+            {error instanceof Error ? error.message : JSON.stringify(error)}
+          </p>
+          <p className="text-gray-600 mb-4">Course ID: {courseId}</p>
+          <Button onClick={() => router.back()}>Quay lại</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!courseData || !courseData.data) {
+    return (
+      <div className="p-8">
+        <Card>
+          <Title level={4} type="danger">
+            Không có dữ liệu khóa học
+          </Title>
+          {!courseData && (
+            <p className="text-red-600 mb-4">courseData is undefined</p>
+          )}
+          {courseData && !courseData.data && (
+            <p className="text-red-600 mb-4">courseData.data is undefined</p>
+          )}
+          <p className="text-gray-600 mb-4">Course ID: {courseId}</p>
+          <p className="text-gray-600 mb-4">
+            Full Response: {JSON.stringify(courseData)}
+          </p>
           <Button onClick={() => router.back()}>Quay lại</Button>
         </Card>
       </div>
@@ -71,7 +142,7 @@ export default function CourseDetailPage() {
     course.capacity &&
     typeof course.capacity.max === "number" &&
     course.capacity.max > 0
-      ? ((course.capacity.current || 0) / course.capacity.max) * 100
+      ? ((course.capacity.enrolled || 0) / course.capacity.max) * 100
       : 0;
 
   const getLevelColor = (level: string) => {
@@ -169,13 +240,13 @@ export default function CourseDetailPage() {
             {course.credits}
           </Descriptions.Item>
           <Descriptions.Item label="Cấp độ">
-            <Tag color={getLevelColor(course.level)}>
-              {getLevelText(course.level)}
+            <Tag color={getLevelColor(course.level || "")}>
+              {getLevelText(course.level || "")}
             </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Trạng thái">
-            <Tag color={getStatusColor(course.status)}>
-              {getStatusText(course.status)}
+            <Tag color={getStatusColor(course.status || "")}>
+              {getStatusText(course.status || "")}
             </Tag>
           </Descriptions.Item>
         </Descriptions>
@@ -187,7 +258,7 @@ export default function CourseDetailPage() {
             {course.capacity?.max ?? "Không có dữ liệu"}
           </Descriptions.Item>
           <Descriptions.Item label="Đang đăng ký">
-            {course.capacity?.current ?? 0}
+            {course.capacity?.enrolled ?? 0}
           </Descriptions.Item>
           <Descriptions.Item label="Tỷ lệ đăng ký">
             <Progress
@@ -221,10 +292,10 @@ export default function CourseDetailPage() {
       <Card className="mb-6" title="Thông tin bổ sung">
         <Descriptions bordered column={{ xs: 1, sm: 2 }}>
           <Descriptions.Item label="Ngày tạo">
-            {course.createdAt}
+            {formatDateTime(course.createdAt)}
           </Descriptions.Item>
           <Descriptions.Item label="Ngày cập nhật">
-            {course.updatedAt}
+            {formatDateTime(course.updatedAt)}
           </Descriptions.Item>
           <Descriptions.Item label="Trạng thái hoạt động">
             {course.isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
@@ -235,22 +306,11 @@ export default function CourseDetailPage() {
         <Card className="mb-6" title="Lịch học">
           <Descriptions bordered column={{ xs: 1, sm: 2 }}>
             <Descriptions.Item label="Học kỳ">
-              {getSemesterText(course.schedule.semester)}
+              {getSemesterText(course.schedule.semester || "")}
             </Descriptions.Item>
             <Descriptions.Item label="Năm">
               {course.schedule.year}
             </Descriptions.Item>
-            {course.schedule.timeSlots &&
-              course.schedule.timeSlots.length > 0 && (
-                <Descriptions.Item label="Lịch trình" span={2}>
-                  {course.schedule.timeSlots.map((slot, index) => (
-                    <Tag key={index} color="blue" className="mb-2">
-                      {slot.day}: {slot.startTime} - {slot.endTime} | Phòng:{" "}
-                      {slot.room} ({slot.building})
-                    </Tag>
-                  ))}
-                </Descriptions.Item>
-              )}
           </Descriptions>
         </Card>
       )}
